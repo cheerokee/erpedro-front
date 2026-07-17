@@ -1,26 +1,28 @@
 // eslint.config.mjs
-import tseslint from '@typescript-eslint/eslint-plugin';
-import parserTs from '@typescript-eslint/parser';
-import angularEslint from '@angular-eslint/eslint-plugin';
-import angularTemplateParser from '@angular-eslint/template-parser';
-import angularTemplatePlugin from '@angular-eslint/eslint-plugin-template';
-import importPlugin from 'eslint-plugin-import';
-import prettier from 'eslint-plugin-prettier';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import globals from 'globals';
+// noinspection JSAnnotator
+
+import tseslint from "@typescript-eslint/eslint-plugin";
+import parserTs from "@typescript-eslint/parser";
+import angularEslint from "@angular-eslint/eslint-plugin";
+import angularTemplateParser from "@angular-eslint/template-parser";
+import angularTemplatePlugin from "@angular-eslint/eslint-plugin-template";
+import importPlugin from "eslint-plugin-import";
+import prettier from "eslint-plugin-prettier";
+import eslintConfigPrettier from "eslint-config-prettier";
+import globals from "globals";
 
 export default [
   {
-    ignores: ['.angular/**', 'dist/**', 'node_modules/**'],
+    ignores: [".angular/**", "dist/**", "node_modules/**"],
   },
   {
-    files: ['**/*.ts'],
+    files: ["**/*.ts"],
     languageOptions: {
       parser: parserTs,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: './tsconfig.json',
+        ecmaVersion: "latest",
+        sourceType: "module",
+        project: "./tsconfig.json",
       },
       globals: Object.fromEntries(
         Object.entries({
@@ -31,16 +33,16 @@ export default [
       ),
     },
     plugins: {
-      '@typescript-eslint': tseslint,
-      '@angular-eslint': angularEslint,
+      "@typescript-eslint": tseslint,
+      "@angular-eslint": angularEslint,
       import: importPlugin,
       prettier,
     },
     settings: {
-      'import/resolver': {
+      "import/resolver": {
         typescript: {
           alwaysTryTypes: true,
-          project: './tsconfig.json',
+          project: "./tsconfig.json",
         },
       },
     },
@@ -48,86 +50,96 @@ export default [
       "import/order": [
         "warn",
         {
-          "groups": [["builtin", "external"], "internal", ["parent", "sibling", "index"]],
-          "alphabetize": { "order": "asc", "caseInsensitive": true },
-          "newlines-between": "always"
-        }
+          groups: [
+            ["builtin", "external"],
+            "internal",
+            ["parent", "sibling", "index"],
+          ],
+          alphabetize: { order: "asc", caseInsensitive: true },
+          "newlines-between": "always",
+        },
       ],
       // ✅ Prettier
-      'prettier/prettier': 'warn',
-      quotes: ['warn', 'single'],
-      semi: ['warn', 'always'],
-      indent: 'off',
+      "prettier/prettier": "warn",
+      quotes: ["warn", "single"],
+      semi: ["warn", "always"],
+      indent: "off",
 
       // ✅ TypeScript
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-floating-promises': 'off',
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/no-floating-promises": "off",
 
       // ✅ Angular (Cleaned for Angular 20 Standalone)
-      '@angular-eslint/component-class-suffix': "off",
-      '@angular-eslint/directive-class-suffix': ['error', { suffixes: ['Directive'] }],
-      '@angular-eslint/no-empty-lifecycle-method': 'warn',
-      '@angular-eslint/contextual-lifecycle': 'warn',
+      "@angular-eslint/component-class-suffix": "off",
+      "@angular-eslint/directive-class-suffix": [
+        "error",
+        { suffixes: ["Directive"] },
+      ],
+      "@angular-eslint/no-empty-lifecycle-method": "warn",
+      "@angular-eslint/contextual-lifecycle": "warn",
 
       // ✅ Import Sorting
-      'import/order': [
-        'warn',
+      "import/order": [
+        "warn",
         {
           groups: [
-            'builtin',
-            'external',
-            'internal',
-            ['parent', 'sibling', 'index'],
-            'object',
-            'type',
+            "builtin",
+            "external",
+            "internal",
+            ["parent", "sibling", "index"],
+            "object",
+            "type",
           ],
           pathGroups: [
             {
-              pattern: '@angular/**',
-              group: 'external',
-              position: 'before',
+              pattern: "@angular/**",
+              group: "external",
+              position: "before",
             },
             {
-              pattern: 'src/app/**',
-              group: 'internal',
-              position: 'after',
+              pattern: "src/app/**",
+              group: "internal",
+              position: "after",
             },
           ],
           pathGroupsExcludedImportTypes: [],
-          'newlines-between': 'always',
+          "newlines-between": "always",
           alphabetize: {
-            order: 'asc',
+            order: "asc",
             caseInsensitive: true,
           },
         },
       ],
-      'import/no-unresolved': 'error',
-      'import/no-duplicates': 'error',
-      'import/first': 'error',
-      'import/newline-after-import': ['warn', { count: 1 }],
+      "import/no-unresolved": "error",
+      "import/no-duplicates": "error",
+      "import/first": "error",
+      "import/newline-after-import": ["warn", { count: 1 }],
 
       // ✅ General
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-debugger': 'error',
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-debugger": "error",
     },
   },
   {
-    files: ['**/*.html'],
+    files: ["**/*.html"],
     languageOptions: {
       parser: angularTemplateParser,
     },
     plugins: {
-      '@angular-eslint/template': angularTemplatePlugin,
+      "@angular-eslint/template": angularTemplatePlugin,
     },
     rules: {
       // ✅ Angular Template Rules
-      '@angular-eslint/template/no-negated-async': 'warn',
-      '@angular-eslint/template/banana-in-box': 'error',
-      '@angular-eslint/template/eqeqeq': 'error',
-      '@angular-eslint/template/alt-text': 'warn',
+      "@angular-eslint/template/no-negated-async": "warn",
+      "@angular-eslint/template/banana-in-box": "error",
+      "@angular-eslint/template/eqeqeq": "error",
+      "@angular-eslint/template/alt-text": "warn",
     },
   },
   eslintConfigPrettier,

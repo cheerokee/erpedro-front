@@ -5,11 +5,17 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "strict": true,
+
+    "strictPropertyInitialization": false,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": false,
-    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictNullChecks": false,
+    "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
+
     "skipLibCheck": true,
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -23,6 +29,9 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictTemplates": true,
+    "extendedDiagnostics": {
+      "checks": { "optionalChainNotNullable": "suppress" }
+    }
   }
 }

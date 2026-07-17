@@ -1,0 +1,89 @@
+<div class="container-fluid p-0">
+  <div class="row m-0">
+    <div class="col-12 p-0">
+      <div class="login-card login-dark">
+        <div>
+          <div>
+            <a class="logo" [routerLink]="['/dashboard']">
+              <img class="img-fluid for-light" src="/assets/images/logo/logo.png" alt="logo" />
+              <img class="img-fluid for-dark" src="/assets/images/logo/logo_dark.png" alt="logo" />
+            </a>
+          </div>
+          <div class="login-main">
+            <form class="theme-form" [formGroup]="form" (ngSubmit)="submit()">
+              <h4>Entre com seu acesso</h4>
+              <p>Digite seu email e senha para logar</p>
+              <div class="form-group">
+                <label class="col-form-label">E-mail</label>
+                <input class="form-control" type="email" required="" placeholder="test@gmail.com" formControlName="email"/>
+                @if (form.controls["email"].touched && form.controls["email"].errors?.["required"]) {
+                  <div class="text text-danger mt-1">Email é obrigatório</div>
+                }
+                @if (form.controls["email"].touched && form.controls["email"].errors?.["email"]) {
+                  <div class="text text-danger mt-1">Email inválido</div>
+                }
+              </div>
+              <div class="form-group">
+                <label class="col-form-label">Senha</label>
+                <div class="form-input position-relative">
+                  <input class="form-control" [type]="show ? 'text' : 'password'"
+                         type="password"
+                         name="login[password]"
+                         required=""
+                         placeholder="*********"
+                         formControlName="password"/>
+                  @if (!show) {
+                    <div class="show-hide" (click)="showPassword()">
+                      <span class="show"></span>
+                    </div>
+                  } @else {
+                    <div class="show-hide" (click)="showPassword()">
+                      <span class="Hide"></span>
+                    </div>
+                  }
+                  @if (form.controls["password"].touched && form.controls["password"].errors?.["required"]) {
+                    <div class="text text-danger mt-1">
+                      Senha é obrigatória
+                    </div>
+                  }
+                </div>
+              </div>
+              <div class="form-group mb-0">
+                <div class="form-check">
+                  <input class="checkbox-primary form-check-input" id="checkbox1" type="checkbox" />
+                  <label class="text-muted form-check-label" for="checkbox1">Relembrar minha senha</label>
+                </div>
+                <a class="link" [routerLink]="['/forgot-password']">Esqueceu a senha?</a>
+                <div class="text-end">
+                  <button class="btn btn-primary btn-block w-100 mt-3" type="submit" [disabled]="!form.valid">
+                    Sign in
+                  </button>
+                </div>
+              </div>
+              <h6 class="text-muted mt-4 or">Or Sign in with</h6>
+              <div class="social mt-4">
+                <div class="btn-showcase">
+                  <a class="btn btn-light" href="https://www.linkedin.com/login" target="_blank">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                  </a>
+                  <a class="btn btn-light" href="https://twitter.com/login?lang=en" target="_blank" >
+                    <i class="fa-brands fa-x-twitter"></i>
+                  </a>
+                  <a class="btn btn-light" href="https://www.facebook.com/" target="_blank" >
+                    <i class="fa-brands fa-facebook-f"></i>
+                  </a>
+                  <a class="btn btn-light" href="https://www.google.com/" target="_blank">
+                    <i class="fa-brands fa-google"></i>
+                  </a>
+                </div>
+              </div>
+              <p class="mt-4 mb-0 text-center">
+                Não tem uma conta? <a class="ms-2" [routerLink]="['/sign-up']">Criar Conta</a >
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

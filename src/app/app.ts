@@ -1,24 +1,24 @@
-import { Component, inject } from "@angular/core";
-import { Title } from "@angular/platform-browser";
+import { Component, inject } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   NavigationEnd,
   Router,
   RouterOutlet,
-} from "@angular/router";
+} from '@angular/router';
 
-import { NgbRatingConfig } from "@ng-bootstrap/ng-bootstrap";
-import { filter, map } from "rxjs";
+import { NgbRatingConfig } from '@ng-bootstrap/ng-bootstrap';
+import { filter, map } from 'rxjs';
 
-import { BackToTop } from "./shared/components/ui/back-to-top/back-to-top";
-import { Loader } from "./shared/components/ui/loader/loader";
-import { LayoutService } from "./shared/services/layout.service";
+import { BackToTop } from './@shared/components/ui/back-to-top/back-to-top';
+import { Loader } from './@shared/components/ui/loader/loader';
+import { LayoutService } from './@core/services/layout.service';
 
 @Component({
-  selector: "app-root",
+  selector: 'app-root',
   imports: [RouterOutlet, Loader, BackToTop],
-  templateUrl: "./app.html",
-  styleUrl: "./app.scss",
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {
   private config = inject(NgbRatingConfig);
@@ -43,8 +43,8 @@ export class App {
           }
 
           const pageTitle =
-            route?.snapshot.data["pageTitle"] || route?.snapshot.data["title"];
-          return pageTitle ? `${pageTitle} | Cuba Angular` : "Cuba Angular";
+            route?.snapshot.data['pageTitle'] || route?.snapshot.data['title'];
+          return pageTitle ? `${pageTitle} | Cuba Angular` : 'Cuba Angular';
         }),
       )
       .subscribe((title) => {
