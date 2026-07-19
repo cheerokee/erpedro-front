@@ -1,0 +1,22 @@
+<app-card
+  [headerTitle]="'Meus Dados Cadastrais'"
+  [border]="true"
+  [padding]="false"
+  [cardBodyClass]="'dark-timeline'"
+>
+  <ul class="simple-wrapper nav nav-tabs" ngbNav #nav="ngbNav" [(activeId)]="activeTab">
+    <li [ngbNavItem]="myDataTabEnum.BASIC">
+      <a class="nav-link txt-primary" ngbNavLink>Dados Básico</a>
+      <ng-template ngbNavContent>
+        <app-basic-data [user_id]="user_id"></app-basic-data>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="myDataTabEnum.PASSWORD">
+      <a class="nav-link txt-primary" ngbNavLink>Trocar a senha</a>
+      <ng-template ngbNavContent>
+        <app-change-password [user_id]="user_id"></app-change-password>
+      </ng-template>
+    </li>
+  </ul>
+  <div [ngbNavOutlet]="nav"></div>
+</app-card>

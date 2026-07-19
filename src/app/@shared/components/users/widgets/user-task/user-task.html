@@ -1,0 +1,14 @@
+<app-card
+  [headerTitle]="'Tasks'"
+  [border]="true"
+  [padding]="false"
+  [cardBodyClass]="'projects-wrapper'"
+>
+  <div class="row g-4">
+    @for (project of projects | slice: 0 : 9; track project) {
+      <div class="col-xxl-4 col-md-6 box-col-6 xl-50">
+        <app-project-details [project]="project" />
+      </div>
+    }
+  </div>
+</app-card>

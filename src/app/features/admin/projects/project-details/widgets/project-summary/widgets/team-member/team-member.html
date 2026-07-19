@@ -1,0 +1,34 @@
+<app-card
+  [cardType]="'classic'"
+  [headerTitle]="'Team Members'"
+  [sortDescription]="'Total 205 Members'"
+  [cardBodyClass]="'pt-0 invite-member'"
+  [buttonText]="'View All'"
+  [path]="'/chat/private-chat'"
+>
+  <ul>
+    @for (member of teamMembers; track member) {
+      <li class="common-align gap-2">
+        <div class="flex-shrink-0">
+          <img class="img-fluid" [src]="member.image" alt="user" />
+        </div>
+        <div class="flex-grow-1">
+          <h6>{{ member.name }}</h6>
+          <span class="c-o-light">{{ member.email }}</span>
+        </div>
+        <div class="d-flex">
+          <app-svg-icon
+            [icon]="'view-member'"
+            placement="top"
+            [ngbTooltip]="'View'"
+          />
+          <app-svg-icon
+            [icon]="'stroke-note'"
+            placement="top"
+            [ngbTooltip]="'Chat'"
+          />
+        </div>
+      </li>
+    }
+  </ul>
+</app-card>

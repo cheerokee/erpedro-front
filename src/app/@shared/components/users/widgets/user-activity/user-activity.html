@@ -1,0 +1,78 @@
+<app-card
+  [headerTitle]="'Recent Activity'"
+  [border]="true"
+  [padding]="false"
+  [cardBodyClass]="'dark-timeline'"
+>
+  <ul>
+    @for (activity of userRecentActivity; track activity; let i = $index) {
+      <li class="d-flex">
+        <div class="activity-dot-{{ getColor(i) }}"></div>
+        <div class="w-100 ms-3">
+          <p class="d-flex justify-content-between mb-2">
+            <span class="date-content light-background">{{
+              activity.date
+            }}</span>
+            <span>{{ activity.time }}</span>
+          </p>
+          <h6>
+            {{ activity.title }}
+            <span class="dot-notification"></span>
+          </h6>
+          <span [innerHTML]="activity.description"></span>
+          @if (activity.images) {
+            <div class="recent-images">
+              <ul>
+                @for (image of activity.images; track image) {
+                  <li>
+                    <div class="recent-img-wrap">
+                      <img [src]="image.image" [alt]="image.title" />
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+          @if (activity.members) {
+            <div class="project-teammate">
+              <ul class="common-f-start">
+                @for (member of activity.members; track member) {
+                  @if (member.profile) {
+                    <li placement="top" [ngbTooltip]="member.name">
+                      <img
+                        class="common-circle"
+                        [src]="member.profile"
+                        alt="user"
+                      />
+                    </li>
+                  } @else {
+                    <li placement="top" [ngbTooltip]="member.name">
+                      <div
+                        class="common-circle bg-lighter-{{
+                          chatService.getTextColor(
+                            chatService.getUserText(member.name)
+                          )
+                        }}"
+                      >
+                        {{ chatService.getUserText(member.name, "singleText") }}
+                      </div>
+                    </li>
+                  }
+                }
+                <li
+                  placement="top"
+                  ngbTooltip="{{ activity.total_member - 4 }}+ More"
+                >
+                  <div class="common-circle bg-lighter-primary">
+                    {{ activity.total_member - 4 }}+
+                  </div>
+                </li>
+              </ul>
+            </div>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+</app-card>

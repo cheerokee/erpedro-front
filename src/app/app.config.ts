@@ -1,5 +1,9 @@
 import { DecimalPipe } from '@angular/common';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import {
+  HttpClient,
+  provideHttpClient,
+  withInterceptors,
+} from '@angular/common/http';
 import {
   ApplicationConfig,
   importProvidersFrom,
@@ -17,6 +21,7 @@ import { routes } from './app.routes';
 import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client';
+import { authInterceptor } from './@core/interceptors/auth.interceptor';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -26,8 +31,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideAnimations(),
     DecimalPipe,
-    provideAnimations(),
-    provideHttpClient(),
+    // provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(
       routes,

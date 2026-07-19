@@ -23,6 +23,8 @@ export namespace RoleModel {
     constructor(props: Omit<Entity, 'toModel' | 'toEntity'>) {
       super(props);
 
+      Object.assign(this, props);
+
       this.created_at = props.created_at
         ? new Date(props.created_at)
         : new Date();

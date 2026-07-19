@@ -1,0 +1,33 @@
+<app-card
+  [cardClass]="'main-summary'"
+  [cardType]="'classic'"
+  [headerTitle]="'To Do List'"
+  [cardBodyClass]="'pt-0 project-todo'"
+  [buttonText]="'View All'"
+  [path]="'/to-do'"
+>
+  <ul class="crm-todo-list">
+    @for (todo of projectTodo; track todo; let i = $index) {
+      <li class="d-flex align-items-center">
+        <span class="l-line-{{ getColor(i) }}"></span>
+        <div class="flex-shrink-0">
+          <div class="form-check">
+            <input
+              class="form-check-input checkbox-{{ getColor(i) }}"
+              type="checkbox"
+              value=""
+            />
+          </div>
+        </div>
+        <div class="flex-grow-1">
+          <h6 class="f-w-400">{{ todo.title }}</h6>
+          <span class="mb-0">{{ todo.description }}</span>
+        </div>
+        <app-card-dropdown-button
+          [dropdownType]="'simple'"
+          [options]="todoStatus"
+        />
+      </li>
+    }
+  </ul>
+</app-card>

@@ -1,0 +1,27 @@
+<div class="input-group">
+  <select2
+    [data]="data"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="!companyId"
+    [customSearchEnabled]="true"
+    [minCharForSearch]="0"
+    [noResultMessage]="
+      !companyId
+        ? 'Selecione uma empresa primeiro'
+        : isLoading
+          ? 'Buscando...'
+          : 'Nenhum funcionário encontrado'
+    "
+    (search)="onSearch($event)"
+    (update)="onUpdate($event)"
+  ></select2>
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    title="Limpar"
+    (click)="clear()"
+  >
+    <i class="fa-solid fa-eraser"></i>
+  </button>
+</div>

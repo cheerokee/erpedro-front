@@ -25,6 +25,20 @@ export const routes: Routes = [
       import('./features/auth/sign-up/sign-up').then((m) => m.SignUp),
   },
   {
+    path: 'sign-up-customer',
+    loadComponent: () =>
+      import('./features/auth/sign-up-customer/sign-up-customer').then(
+        (m) => m.SignUpCustomer,
+      ),
+  },
+  {
+    path: 'confirm-email',
+    loadComponent: () =>
+      import('./features/auth/confirm-email/confirm-email').then(
+        (m) => m.ConfirmEmail,
+      ),
+  },
+  {
     path: 'forgot-password',
     loadComponent: () =>
       import('./features/auth/forgot-password/forgot-password').then(
@@ -38,14 +52,6 @@ export const routes: Routes = [
         (m) => m.ResetPassword,
       ),
   },
-  // {
-  //   path: "",
-  //   loadComponent: () =>
-  //     import("./@shared/components/layout/content/content").then(
-  //       (m) => m.Content,
-  //     ),
-  //   children: content,
-  // },
   {
     path: '**',
     redirectTo: '',

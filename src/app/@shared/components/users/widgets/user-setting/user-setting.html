@@ -1,0 +1,124 @@
+<app-card
+  [headerTitle]="'Settings'"
+  [border]="true"
+  [padding]="false"
+  [cardBodyClass]="'setting-wrapper'"
+>
+  <div class="row g-md-3 g-2">
+    <div class="col-md-3">
+      <label class="form-label mb-0">Reminders</label>
+    </div>
+    <div class="col-sm-9">
+      <div class="form-check form-switch form-check-inline">
+        <input
+          class="form-check-input switch-primary check-size"
+          type="checkbox"
+          role="switch"
+          checked=""
+        />
+        <p>
+          <app-feather-icon [icon]="'info'" />
+          To stay on top of crucial tasks and deadlines, set up alerts and
+          notifications.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="row g-md-3 g-2">
+    <div class="col-md-3">
+      <label class="form-label mb-0">Select Language</label>
+    </div>
+    <div class="col-sm-9">
+      <select2 [data]="languages" placeholder="Select Language" />
+    </div>
+  </div>
+  <div class="row g-md-3 g-2">
+    <div class="col-md-3">
+      <label class="form-label mb-0">Recent Activity </label>
+    </div>
+    <div class="col-md-9">
+      <div class="form-check form-switch form-check-inline">
+        <input
+          class="form-check-input switch-primary check-size"
+          type="checkbox"
+          role="switch"
+        />
+        <p>
+          <app-feather-icon [icon]="'info'" />
+          See a history of your most recent platform interactions and actions.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="row g-md-3 g-2">
+    <div class="col-md-3">
+      <label class="form-label mb-0">Two-factor Authentications</label>
+    </div>
+    <div class="col-md-9">
+      <div class="form-check form-switch form-check-inline">
+        <input
+          class="form-check-input switch-primary check-size"
+          type="checkbox"
+          role="switch"
+          checked=""
+        />
+        <p>
+          <app-feather-icon [icon]="'info'" />
+          By enabling an extra step of verification during login, you can
+          improve account security.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="row g-md-3 g-2">
+    <div class="col-md-3">
+      <label class="form-label mb-0">Post Notifications</label>
+    </div>
+    <div class="col-md-9">
+      <div class="form-check form-switch form-check-inline">
+        <input
+          class="form-check-input switch-primary check-size"
+          type="checkbox"
+          role="switch"
+          checked=""
+        />
+        <p>
+          <app-feather-icon [icon]="'info'" />
+          Control and personalis the platform's alerts for new content and
+          updates.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="row g-md-3 g-2">
+    <div class="col-md-3">
+      <label class="form-label mb-0">Remove Accounts</label>
+    </div>
+    <div class="col-md-9">
+      <div class="form-check form-switch form-check-inline">
+        <input
+          class="form-check-input switch-primary check-size"
+          type="checkbox"
+          role="switch"
+          checked=""
+        />
+        <p>
+          <app-feather-icon [icon]="'info'" />
+          Permanently remove your account and all related information from the
+          platform.
+        </p>
+      </div>
+      <div class="common-flex mt-3">
+        <a
+          class="btn button-light-danger disabled"
+          href="javascript:void(0)"
+          role="button"
+          >Disable Account</a
+        >
+        <a class="btn btn-danger" href="javascript:void(0)" role="button"
+          >Delete Account</a
+        >
+      </div>
+    </div>
+  </div>
+</app-card>

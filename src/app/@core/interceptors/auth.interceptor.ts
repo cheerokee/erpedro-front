@@ -1,10 +1,19 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse, HttpEvent } from '@angular/common/http';
+import {
+  HttpInterceptorFn,
+  HttpRequest,
+  HttpHandlerFn,
+  HttpErrorResponse,
+  HttpEvent,
+} from '@angular/common/http';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 
-import { AuthService } from "../services/auth.service";
+import { AuthService } from '../services/auth.service';
 
-export const authInterceptor: HttpInterceptorFn = (req, next): Observable<any> => {
+export const authInterceptor: HttpInterceptorFn = (
+  req,
+  next,
+): Observable<any> => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
@@ -20,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next): Observable<any> =
 
       if (error instanceof HttpErrorResponse && error.status === 401) {
         // Se o erro 401 vier da própria rota de refresh, não tente dar refresh de novo!
-        if (req.url.includes('/authenticate/refresh')) {
+        if (req.url.includes('/auth/refresh-token')) {
           authService.signOut();
           return throwError(() => error);
         }
@@ -29,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next): Observable<any> =
       }
 
       return throwError(() => error);
-    })
+    }),
   );
 };
 
@@ -41,7 +50,11 @@ function addToken(request: HttpRequest<any>, token: string | null) {
 }
 
 // Lógica de Refresh Token
-function handle401Error(request: HttpRequest<any>, next: HttpHandlerFn, authService: AuthService) {
+function handle401Error(
+  request: HttpRequest<any>,
+  next: HttpHandlerFn,
+  authService: AuthService,
+) {
   return authService.refreshToken().pipe(
     switchMap((result) => {
       authService.setToken(result?.data?.access_token ?? null);
@@ -51,10 +64,10 @@ function handle401Error(request: HttpRequest<any>, next: HttpHandlerFn, authServ
     }),
     catchError((err) => {
       // Se o refresh falhou, tchau! (Logout)
-      authService.signOut()
+      authService.signOut();
       return throwError(async () => {
-        return err
+        return err;
       });
-    })
+    }),
   );
 }

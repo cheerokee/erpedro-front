@@ -1,0 +1,22 @@
+.page-wrapper .page-header .header-wrapper .nav-right .profile-dropdown {
+  width: 200px;
+  top: 50px;
+  left: -40px;
+}
+
+.user-name {
+  max-width: 160px;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-email {
+  max-width: 140px;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 10px;
+}

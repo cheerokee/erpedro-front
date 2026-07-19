@@ -1,29 +1,29 @@
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject } from 'rxjs';
 
-import { IMenu } from "../interface/menu";
+import { IMenu } from '../interface/menu';
 
 export const menuItems: IMenu[] = [
   {
-    main_title: "General",
+    main_title: 'Geral',
   },
   {
-    title: "Sample Pages",
-    icon: "home",
-    type: "sub",
+    title: 'Início',
+    icon: 'home',
+    type: 'link',
+    bookmark: true,
+    path: '',
+    level: 1,
+  },
+  {
+    title: 'Cadastros',
+    icon: 'learning',
+    type: 'sub',
     active: true,
     level: 1,
     children: [
-      { path: "/pages/sample-page1", title: "Sample-page1", type: "link" },
-      { path: "/pages/sample-page2", title: "Sample-page2", type: "link" },
+      { path: '/admin/employees', title: 'Colaboradores', type: 'link' },
+      { path: '/admin/parishioners', title: 'Paroquianos', type: 'link' },
     ],
-  },
-  {
-    title: "Sample-page",
-    icon: "support-tickets",
-    type: "link",
-    bookmark: true,
-    path: "/sample-page",
-    level: 1,
   },
 ];
 

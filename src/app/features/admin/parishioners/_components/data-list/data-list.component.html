@@ -1,0 +1,63 @@
+<app-card [border]="true"
+          [padding]="false"
+          [cardBodyClass]="'p-0'">
+  <div class="f-m-light mt-1" headerNoTitle>
+    <div class="row">
+      <div class="col-12 m-b-10"><app-filter-parishioners></app-filter-parishioners></div>
+      <app-company-selector #companySelector></app-company-selector>
+      <div class="col-12">
+        <div class="pull-right">
+          <button class="btn btn-secondary m-r-10">
+            <i class="fa fa-print"></i>&nbsp;Imprimir
+          </button>
+          <button class="btn btn-success m-r-10">
+            <i class="fa fa-print"></i>&nbsp;Exportar Excel
+          </button>
+          <button class="btn btn-primary">
+            <i class="fa fa-plus"></i>&nbsp;Novo Registro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive custom-scrollbar">
+    <table class="table border-bottom-table">
+      <thead>
+      <tr class="border-bottom-primary">
+        <th scope="col">Id</th>
+        <th scope="col">First Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Username</th>
+        <th scope="col">Designation</th>
+        <th scope="col">Company</th>
+        <th scope="col">Language</th>
+        <th scope="col">Country</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (details of basicTable; track details) {
+          <tr class="border-bottom-{{ details.tr_class }}">
+            <th scope="row">{{ details.id }}</th>
+            <td>
+              <img
+                class="img-30 me-2"
+                [src]="details.image_url"
+                alt="profile"
+              />{{ details.first_name }}
+            </td>
+            <td>{{ details.last_name }}</td>
+            <td>{{ details.user_name }}</td>
+            <td>{{ details.designation }}</td>
+            <td>{{ details.company }}</td>
+            <td>
+              <span class="badge badge-light-{{ details.class }}">{{
+                  details.language
+                }}</span>
+            </td>
+            <td>{{ details.country }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</app-card>

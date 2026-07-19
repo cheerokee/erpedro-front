@@ -1,0 +1,128 @@
+@if (currentUser()) {
+  <div class="col-sm-12">
+    <div class="card hovercard text-center common-user-image">
+      <div class="cardheader">
+        <div class="user-image">
+          <div class="avatar">
+            <div class="common-align">
+              <div>
+                @if (user.avatar) {
+                  <img [src]="user.avatar" alt="Profile Image" id="output"/>
+                } @else {
+                  <img [src]="'/assets/images/user/no_avatar.png'" alt="Profile Image" id="output"/>
+                }
+                <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput hidden />
+                @if (currentUser()!.avatar) {
+                  <div class="icon-wrapper" id="cancelButton" (click)="removeProfile()" >
+                    <i class="icofont icofont-error"></i>
+                  </div>
+                }
+<!--                @if (currentUser()!.avatar) {-->
+<!--                  <div class="icon-wrapper" (click)="fileInput.click()">-->
+<!--                    <i class="icofont icofont-pencil-alt-5"></i>-->
+<!--                  </div>-->
+<!--                }-->
+
+                <div class="icon-wrapper" (click)="fileInput.click()">
+                  <i class="icofont icofont-pencil-alt-5"></i>
+                </div>
+              </div>
+              <div class="user-designation">
+                <a target="_blank" href="">{{ currentUser()!.name }}</a>
+                <div class="desc">{{ currentUser()!.email }}</div>
+              </div>
+            </div>
+            <div class="follow">
+              <!--              <div>-->
+              <!--                <div class="follow-num counter">-->
+              <!--                  {{ currentUser()!.followers }}-->
+              <!--                </div>-->
+              <!--                <span>Follower</span>-->
+              <!--              </div>-->
+              <!--              <div>-->
+              <!--                <div class="follow-num counter">-->
+              <!--                  {{ currentUser()!.following }}-->
+              <!--                </div>-->
+              <!--                <span>Following</span>-->
+              <!--              </div>-->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!--  <div class="col-12">-->
+<!--    <div class="card">-->
+<!--      <div class="card-body">-->
+<!--        teste-->
+
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+
+  <!--  <div class="col-12">-->
+    <!--    <div class="card user-bio">-->
+    <!--      <div class="card-body">-->
+    <!--        <div class="row g-3">-->
+    <!--          <div class="col-12">-->
+    <!--            <div class="ttl-info text-start">-->
+    <!--              <h6><i class="fa-solid fa-user-tie pe-2"></i> Bio</h6>-->
+    <!--              <span class="mb-sm-3">{{ currentUser()!.bio }}</span>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-lg-3 col-md-4 col-sm-6">-->
+    <!--            <div class="ttl-info text-start">-->
+    <!--              <h6><i class="fa-solid fa-envelope pe-2"></i> Email</h6>-->
+    <!--              <span>{{ currentUser()!.email }}</span>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-lg-3 col-md-4 col-sm-6">-->
+    <!--            <div class="ttl-info text-start">-->
+    <!--              <h6>-->
+    <!--                <i class="fa-solid fa-calendar-days pe-2"></i>Data de Nascimento-->
+    <!--              </h6>-->
+    <!--              <span>{{ currentUser()!.DOB }}</span>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-lg-3 col-md-4 col-sm-6">-->
+    <!--            <div class="ttl-info text-start">-->
+    <!--              <h6><i class="fa-solid fa-phone pe-2"></i>Contact Us</h6>-->
+    <!--              <span>{{ currentUser()!.contact_number }}</span>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-lg-3 col-md-4 col-sm-6">-->
+    <!--            <div class="ttl-info text-start pb-0">-->
+    <!--              <h6><i class="fa-solid fa-location-arrow pe-2"></i>Location</h6>-->
+    <!--              <span>{{ currentUser()!.location }}</span>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--          <div class="col-12">-->
+    <!--            <div class="common-flex justify-content-center">-->
+    <!--              <div-->
+    <!--                class="social-media"-->
+    <!--                data-intro="This is your social details"-->
+    <!--              >-->
+    <!--                <ul class="list-inline">-->
+    <!--                  @for (option of socialShareOptions; track option) {-->
+    <!--                    <li-->
+    <!--                      class="list-inline-item"-->
+    <!--                      placement="top"-->
+    <!--                      [ngbTooltip]="option.name"-->
+    <!--                    >-->
+    <!--                      <a [href]="option.link" target="_blank">-->
+    <!--                        <i [class]="option.icon"></i>-->
+    <!--                      </a>-->
+    <!--                    </li>-->
+    <!--                  }-->
+    <!--                </ul>-->
+    <!--              </div>-->
+    <!--            </div>-->
+    <!--          </div>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
+    <!--  </div>-->
+} @else {
+  No User Found
+}

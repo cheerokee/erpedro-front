@@ -1,7 +1,5 @@
 export class EntityBase<Entity> {
-  constructor(props: Omit<Entity, 'toModel' | 'toEntity'>) {
-    Object.assign(this, props);
-  }
+  constructor(props: Omit<Entity, 'toModel' | 'toEntity'>) {}
 
   toModel(): any {
     const { ...props } = Object.assign({}, this);

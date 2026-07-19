@@ -57,6 +57,17 @@ Manter a separação `core` / `shared` / `features` desde o início evita reorga
 - **[preencher]** Convenção container/presentational, ou componentes "espertos" por padrão?
 - Nomenclatura: `nome-da-tela.page.ts` para componentes de rota, `nome-do-componente.component.ts` para os demais.
 
+### 3.1 Componentes de seleção assíncrona (`@shared/components/selectors/`)
+
+Padrão para inputs de busca (`ng-select2-component`) que buscam no backend conforme o usuário digita — introduzido em `company-selector`:
+
+- `<select2 [customSearchEnabled]="true" ...>` com `(search)` emitindo pro componente, que empurra o termo digitado num `Subject` interno e usa `switchMap` pro `<entidade>Service.byLike(q)` (cancela automaticamente a busca anterior se o usuário continuar digitando).
+- Carga inicial (sem termo) já dispara `byLike('')`, trazendo os N primeiros registros do backend — não fica esperando o primeiro caractere.
+- Pré-seleção pra telas de edição: método público `autoset(id)` (chamado via `@ViewChild` pelo componente pai) que busca o registro por id (`service.get(id)`) e garante que ele apareça no `data`/`value` do `<select2>` mesmo que não esteja entre os N primeiros trazidos pelo `byLike`.
+- Seleção do usuário é emitida via `@Output() selected` com a entidade completa (não só o id) — quem usa o componente decide o que fazer (setar num `FormControl`, etc.).
+- **Não implementa `ControlValueAccessor`** (sem precedente disso no projeto ainda) — não dá pra usar `formControlName` direto no `<app-company-selector>`, só `@Output()`/método público. Se surgir a necessidade de um form usar `formControlName` diretamente no seletor, avaliar introduzir CVA nesse momento (o próprio `<select2>` já suporta, via auto-registro em `NgControl` — ver `ng-select2-component`).
+- `Select2` não expõe `valueChange`, então `[(value)]` (banana-in-a-box) não funciona sem `ngModel`/`formControl`; usar `[value]` (one-way) e atualizar a propriedade do componente host imperativamente — o setter interno do `<select2>` já resincroniza a UI.
+
 ## 4. Comunicação com o backend
 
 - O backend expõe **REST** (escrita) e **GraphQL** (somente leitura/listagem) — ver seção 2 do `AI_CONTEXT.md` do backend.
@@ -82,9 +93,23 @@ As telas iniciais do sistema, segundo `docs/business/funcionarios.md` e `docs/bu
 
 Ao implementar essas telas, manter nomes de rota e conceitos alinhados ao `PRODUCT_CONTEXT.md` do backend (`Company`/`Employee`/`Customer`/`Role`).
 
+### 6.1 Auto-cadastro público vinculado a company (link/QR code)
+
+Fluxo alternativo ao item 4 acima: em vez de um funcionário "aceitar" o convite depois do cadastro genérico, o funcionário compartilha um link/QR code que já leva o paroquiano a um formulário público (`/sign-up-customer?company=<uuid>`) preenchendo `User` (login) e `Customer` (paroquiano) numa única submissão, já vinculado à `company`. Testado manualmente (curl + banco + Playwright) em 2026-07-18.
+
+- **Contrato da URL:** `?company=<uuid-da-company>`, sem entidade de convite dedicada — o id da company vai direto na URL/QR code. Trade-off aceito: sem expiração/revogação de link.
+- **Backend:**
+  - `GET /v1/companies/:id/public-info` (`companies/controllers/company.controller.ts`) — sem `AuthGuard`, retorna só `{ id, name }` (nunca o resto dos dados da company).
+  - `POST /v1/customers/self-register` (`general/controllers/customer.controller.ts`, DTO `create-customer-self-register.dto.ts`) — sem `AuthGuard`. `CustomerService.selfRegister()` primeiro confere se a `company` existe (falha rápido, sem criar nada), depois reaproveita `UsersService.create()` (mesma lógica de hash/role/e-mail do cadastro genérico) e por fim `CustomerService.create()` (já linkando `user_id`/`company_id`).
+  - Para `CustomerService` enxergar `UsersService`/`CompanyService` entre módulos, `UserModule` e `CompaniesModule` agora exportam esses services, e `GeneralModule` os importa.
+- **Frontend:** páginas novas em `features/auth/sign-up-customer/` e `features/auth/confirm-email/` (a segunda foi criada agora porque não existia — o backend já gerava o link `/confirm-email?token=...` no e-mail, mas a rota não existia no front, então a confirmação de e-mail estava quebrada mesmo pro cadastro genérico já existente). `CustomerService` (`@core/modules/general/services/customer.service.ts`) é o primeiro service desse módulo — só existiam entidades antes.
+- **Fora de escopo (não implementado ainda):** tela do funcionário para gerar/exibir o link ou QR code; campos extras (endereço, catequese, matrimônio etc.) — quando entrarem, avaliar se cabem como novos `FormGroup`s dentro do mesmo formulário antes de criar infraestrutura genérica de "seções dinâmicas".
+
 ## 7. Débito técnico conhecido
 
 - **`noImplicitReturns` desligado no `tsconfig.json`** (era `true`). O código do template (`sidebar.ts`, `search.ts`, `header-bookmark.ts`, `cart.service.ts`) usa `.filter()` como se fosse `.forEach()` — callbacks com efeito colateral e sem `return` em todos os caminhos — o que quebrava o build (`TS7030`). Em vez de reescrever esses componentes de terceiros, a flag foi afrouxada para todo o projeto. **A revisitar:** corrigir esses callbacks (trocar `.filter()` por `.forEach()`, cujo retorno era descartado) e reativar `noImplicitReturns`.
+- **`CustomerService.selfRegister` (backend) não é transacional entre `User` e `Customer`** (ver [6.1](#61-auto-cadastro-público-vinculado-a-company-linkqr-code)) — são duas escritas em repositórios/módulos diferentes (`UsersService.create` depois `CustomerService.create`). Se a segunda falhar (ex. banco cai entre as duas chamadas), fica um `User` pendente órfão, sem `Customer`/company vinculados — caso raro, recuperável manualmente hoje. **A revisitar:** unificar numa transação real (`DataSource.transaction` cruzando os dois repositories) se o volume de auto-cadastro justificar.
+- **`GET /v1/companies/by-like` (backend, novo endpoint pro `company-selector`) duplica lógica de filtro que já existe genericamente na query GraphQL `companyList`** (`BaseListArgs`/`BaseReportService.proccessFilter` já suportam filtro tipo `"like"` em qualquer campo, sem precisar de código novo por entidade). Foi implementado como endpoint REST dedicado — decisão tomada explicitamente com o usuário — pra manter `company.service.ts` (front) simples (uma chamada HTTP igual aos outros métodos do serviço, sem introduzir Apollo/GraphQL nesse ponto), mas isso diverge do padrão documentado na seção 4 (GraphQL = leitura/listagem, REST = escrita). Usa `Like` do TypeORM (não `ILike`, que é só Postgres — banco aqui é MySQL, já case-insensitive nas collations padrão). **A revisitar:** se surgir a necessidade de busca com autocomplete em outras entidades (funcionário, paroquiano etc.), decidir entre (a) generalizar esse `by-like` como endpoint reutilizável no `BaseCrudController`, ou (b) migrar pro padrão GraphQL genérico já existente, evitando reimplementar filtro por entidade.
 
 ## 8. Checklist mínimo para nova tela/feature
 

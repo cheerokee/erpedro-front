@@ -22,6 +22,8 @@ export namespace CustomerModel {
 
     name: string;
     document?: string;
+    country_code?: number;
+    phone_number?: number;
 
     user?: UserModel.Entity;
     user_id: string;
@@ -33,6 +35,8 @@ export namespace CustomerModel {
 
     constructor(props: Omit<Entity, 'toModel' | 'toEntity'>) {
       super(props);
+
+      Object.assign(this, props);
 
       this.created_at = props.created_at
         ? new Date(props.created_at)
@@ -81,6 +85,17 @@ export namespace CustomerModel {
           ),
         }),
       });
+    }
+  }
+
+  export class Filter {
+    name?: string;
+    document?: string;
+    user_id?: string;
+    company_id?: string;
+
+    constructor(props: Partial<Filter>) {
+      Object.assign(this, props);
     }
   }
 

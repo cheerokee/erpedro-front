@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 
 import { Content } from '../../@shared/components/layout/content/content';
+import { projectRoutes } from './projects/project.routes';
+import { userRoutes } from './user/user.routes';
+import { parishionersRoutes } from './parishioners/parishioners.routes';
 
 export const adminRoutes: Routes = [
   {
@@ -20,6 +23,18 @@ export const adminRoutes: Routes = [
         },
         loadComponent: () =>
           import('./dashboard/dashboard.page').then((m) => m.DashboardPage),
+      },
+      {
+        path: 'user',
+        children: userRoutes,
+      },
+      {
+        path: 'project',
+        children: projectRoutes,
+      },
+      {
+        path: 'parishioners',
+        children: parishionersRoutes,
       },
     ],
   },

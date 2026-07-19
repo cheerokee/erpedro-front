@@ -51,6 +51,13 @@ export class AuthService {
     );
   }
 
+  confirmEmail(token: string): Observable<any> {
+    return this.httpClient.post(
+      `${environment.api.url}/v1/auth/confirm-email`,
+      { token },
+    );
+  }
+
   async signOut() {
     // Trigger event here to clear all data storages on respective modules
     this.removeToken();
@@ -103,7 +110,7 @@ export class AuthService {
 
     return this.httpClient
       .post<any>(
-        `${environment.api.url}/authenticate/refresh`,
+        `${environment.api.url}/v1/auth/refresh-token`,
         {
           refresh_token: this.getRefreshToken(),
         },
@@ -173,10 +180,11 @@ export class AuthService {
 }
 
 export class AuthenticatedUser {
-  username: string;
   sub: string;
-  exp: number;
-  iat: number;
+  name: string;
+  email: string;
   roles?: RoleModel.Entity[];
   companies?: CompanyModel.Entity[];
+  exp: number;
+  iat: number;
 }

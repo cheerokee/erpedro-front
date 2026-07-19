@@ -44,7 +44,7 @@ export class App {
 
           const pageTitle =
             route?.snapshot.data['pageTitle'] || route?.snapshot.data['title'];
-          return pageTitle ? `${pageTitle} | Cuba Angular` : 'Cuba Angular';
+          return pageTitle ? `${pageTitle} | ERPedro` : 'ERPedro';
         }),
       )
       .subscribe((title) => {

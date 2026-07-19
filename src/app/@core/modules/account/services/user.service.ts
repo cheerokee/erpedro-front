@@ -48,6 +48,16 @@ export class UserService extends HttpService {
     );
   }
 
+  update(
+    id: string,
+    data: Partial<Omit<UserModel.Entity, 'id' | 'updated_at'>>,
+  ): Observable<ResultModel<any>> {
+    return this.httpClient.put<ResultModel<UserModel.Entity>>(
+      `${this.path}/v1/users/${id}`,
+      data,
+    );
+  }
+
   // list(skip: number = 1, take: number = 100) {
   //   const fnName: string = 'userList';
   //   return this.apollo

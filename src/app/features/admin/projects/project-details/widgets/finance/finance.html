@@ -1,0 +1,23 @@
+<div class="row">
+  @for (chart of expenseCharts; track chart; let i = $index) {
+    <div
+      [ngClass]="
+        expenseCharts.length % 2 !== 0 && i === expenseCharts.length - 1
+          ? 'col-md-4'
+          : 'col-md-4 col-sm-6'
+      "
+    >
+      <app-expense-chart [chart]="chart" />
+    </div>
+  }
+
+  <div class="col-xxl-8 col-xl-12 col-lg-8 box-col-12">
+    <app-budget-details />
+  </div>
+  <div class="col-xxl-4 col-xl-12 col-lg-4 box-col-12">
+    <app-budget-distribution />
+  </div>
+  <div class="col-12">
+    <app-project-budget />
+  </div>
+</div>

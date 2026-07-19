@@ -1,0 +1,33 @@
+<div class="container-fluid p-0">
+  <div class="row m-0">
+    <div class="col-12 p-0">
+      <div class="login-card login-dark">
+        <div>
+          <div>
+            <a class="logo" [routerLink]="['/dashboard']">
+              <img class="img-fluid for-light" src="/assets/images/logo/logo.png" alt="logo" />
+              <img class="img-fluid for-dark" src="/assets/images/logo/logo_dark.png" alt="logo" />
+            </a>
+          </div>
+          <div class="login-main">
+            @if (status === 'loading') {
+              <h4>Confirmando seu e-mail...</h4>
+              <p>Aguarde um instante.</p>
+            }
+            @if (status === 'success') {
+              <h4>E-mail confirmado!</h4>
+              <p>Você já pode entrar com sua conta. Redirecionando para o login...</p>
+            }
+            @if (status === 'error') {
+              <h4>Não foi possível confirmar seu e-mail</h4>
+              <p>O link pode ter expirado ou já ter sido usado.</p>
+            }
+            <p class="mt-4 mb-0 text-center">
+              <a class="ms-2" [routerLink]="['/sign-in']">Voltar para o login</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

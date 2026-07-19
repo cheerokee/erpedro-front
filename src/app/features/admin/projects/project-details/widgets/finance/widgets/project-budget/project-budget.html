@@ -1,0 +1,101 @@
+<app-card
+  [headerClass]="'Project Budget'"
+  [border]="true"
+  [padding]="false"
+  [headerClass]="'m-0'"
+  [cardBodyClass]="'project-budget-wrapper'"
+>
+  <div class="row g-3 mb-3">
+    <div class="col-xxl-8 col-ed-6 box-col-12">
+      <div class="row g-xxl-1">
+        <div class="col-xxl-3 col-ed-4 box-col-12">
+          <label class="col-form-label">Remaining Budget</label>
+        </div>
+        <div class="col-xxl-9 col-ed-8 box-col-12">
+          <div class="progress">
+            <div class="progress-bar bg-primary" style="width: 65%"></div>
+          </div>
+          <p class="c-o-light text-end">$16,000 Used of $45,300</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xxl-4 col-ed-6 box-col-12">
+      <div class="row g-xxl-1 justify-content-xxl-end">
+        <div class="col-xxl-5 col-auto box-col-3">
+          <label class="col-form-label">Plan Your Budget</label>
+        </div>
+        <div class="col-auto">
+          <div class="touchspin-wrapper">
+            <button
+              class="decrement-touchspin btn-touchspin"
+              (click)="changeValue(-1)"
+            >
+              <i class="fa-solid fa-minus"> </i>
+            </button>
+            <input
+              class="input-touchspin"
+              type="number"
+              [value]="budgetValue"
+            />
+            <button
+              class="increment-touchspin btn-touchspin"
+              (click)="changeValue(1)"
+            >
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="row">
+        <div class="col-xxl-2 box-col-12">
+          <label class="col-form-label">Remarks and Notes</label>
+        </div>
+        <div class="col-xxl-10 box-col-12">
+          <textarea
+            class="form-control"
+            rows="3"
+            placeholder="Add Remarks and Notes..."
+          ></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="row">
+        <div class="col-md-2 col-auto">
+          <label class="col-form-label p-0">Notification</label>
+        </div>
+        <div class="col-auto">
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              id="flexSwitchCheckChecked"
+              type="checkbox"
+              role="switch"
+              checked=""
+            />
+            <label class="form-check-label mb-0" for="flexSwitchCheckChecked"
+              >Send email to the user if actual cost exceeds the budget.</label
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card-footer text-end pb-0 px-0">
+        <a
+          class="btn button-light-primary"
+          href="javascript:void(0)"
+          role="button"
+          >Cancel</a
+        >
+        <a class="btn btn-primary" href="javascript:void(0)" role="button"
+          >Submit</a
+        >
+      </div>
+    </div>
+  </div>
+</app-card>

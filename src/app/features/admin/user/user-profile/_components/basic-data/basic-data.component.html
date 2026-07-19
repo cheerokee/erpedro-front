@@ -1,0 +1,51 @@
+@if (isFetching) {
+  <div class="text-center p-3">
+    <span>Carregando dados...</span>
+  </div>
+} @else {
+  <form class="theme-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="col-form-label">Nome</label>
+          <input
+            class="form-control"
+            type="text"
+            name="basic-data[name]"
+            placeholder="Nome completo"
+            formControlName="name"
+          />
+          @if (form.controls['name'].touched && form.controls['name'].errors?.['required']) {
+            <div class="text text-danger mt-1">Nome é obrigatório</div>
+          }
+          @if (form.controls['name'].touched && form.controls['name'].errors?.['maxlength']) {
+            <div class="text text-danger mt-1">O nome deve ter no máximo 100 caracteres</div>
+          }
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="col-form-label">E-mail</label>
+          <input
+            class="form-control"
+            type="email"
+            name="basic-data[email]"
+            placeholder="test@gmail.com"
+            formControlName="email"
+          />
+          @if (form.controls['email'].touched && form.controls['email'].errors?.['required']) {
+            <div class="text text-danger mt-1">Email é obrigatório</div>
+          }
+          @if (form.controls['email'].touched && form.controls['email'].errors?.['email']) {
+            <div class="text text-danger mt-1">Email inválido</div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="form-group mt-3 mb-0 text-end">
+      <button class="btn btn-primary" type="submit" [disabled]="!form.valid || isLoading">
+        Salvar alterações
+      </button>
+    </div>
+  </form>
+}
