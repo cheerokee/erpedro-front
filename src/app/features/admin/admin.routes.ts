@@ -4,6 +4,8 @@ import { Content } from '../../@shared/components/layout/content/content';
 import { projectRoutes } from './projects/project.routes';
 import { userRoutes } from './user/user.routes';
 import { parishionersRoutes } from './parishioners/parishioners.routes';
+import { addressesRoutes } from './addresses/addresses.routes';
+import { employeesRoutes } from './employees/employees.routes';
 
 export const adminRoutes: Routes = [
   {
@@ -35,6 +37,14 @@ export const adminRoutes: Routes = [
       {
         path: 'parishioners',
         children: parishionersRoutes,
+      },
+      {
+        path: 'employees',
+        children: employeesRoutes,
+      },
+      {
+        path: 'addresses',
+        children: addressesRoutes,
       },
     ],
   },

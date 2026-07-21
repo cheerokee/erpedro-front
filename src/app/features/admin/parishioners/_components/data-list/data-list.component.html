@@ -4,16 +4,9 @@
   <div class="f-m-light mt-1" headerNoTitle>
     <div class="row">
       <div class="col-12 m-b-10"><app-filter-parishioners></app-filter-parishioners></div>
-      <app-company-selector #companySelector></app-company-selector>
       <div class="col-12">
         <div class="pull-right">
-          <button class="btn btn-secondary m-r-10">
-            <i class="fa fa-print"></i>&nbsp;Imprimir
-          </button>
-          <button class="btn btn-success m-r-10">
-            <i class="fa fa-print"></i>&nbsp;Exportar Excel
-          </button>
-          <button class="btn btn-primary">
+          <button (click)="new()" class="btn btn-primary">
             <i class="fa fa-plus"></i>&nbsp;Novo Registro
           </button>
         </div>
@@ -24,40 +17,50 @@
     <table class="table border-bottom-table">
       <thead>
       <tr class="border-bottom-primary">
-        <th scope="col">Id</th>
-        <th scope="col">First Name</th>
-        <th scope="col">Last Name</th>
-        <th scope="col">Username</th>
-        <th scope="col">Designation</th>
-        <th scope="col">Company</th>
-        <th scope="col">Language</th>
-        <th scope="col">Country</th>
+        <th scope="col">Nome</th>
+        <th scope="col">Documento</th>
+        <th scope="col">Telefone</th>
+        <th scope="col">Empresa</th>
+        <th scope="col">Ações</th>
       </tr>
       </thead>
       <tbody>
-        @for (details of basicTable; track details) {
-          <tr class="border-bottom-{{ details.tr_class }}">
-            <th scope="row">{{ details.id }}</th>
+        @for (row of rows; track row.id) {
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.document ?? '-' }}</td>
+            <td>{{ row.phone_number ? (row.country_code ? '+' + row.country_code + ' ' : '') + row.phone_number : '-' }}</td>
+            <td>{{ row.company?.name ?? '-' }}</td>
             <td>
-              <img
-                class="img-30 me-2"
-                [src]="details.image_url"
-                alt="profile"
-              />{{ details.first_name }}
+              <button type="button" (click)="edit(row.id)" class="btn btn-primary btn-sm me-1">Editar</button>
+              <button type="button" (click)="remove(row.id)" class="btn btn-danger btn-sm">Remover</button>
             </td>
-            <td>{{ details.last_name }}</td>
-            <td>{{ details.user_name }}</td>
-            <td>{{ details.designation }}</td>
-            <td>{{ details.company }}</td>
-            <td>
-              <span class="badge badge-light-{{ details.class }}">{{
-                  details.language
-                }}</span>
-            </td>
-            <td>{{ details.country }}</td>
+          </tr>
+        } @empty {
+          @if (!loading) {
+            <tr>
+              <td colspan="5" class="text-center">Nenhum paroquiano encontrado</td>
+            </tr>
+          }
+        }
+        @if (loading) {
+          <tr>
+            <td colspan="5" class="text-center">Carregando...</td>
           </tr>
         }
       </tbody>
     </table>
   </div>
+  <div class="d-flex justify-content-end p-10">
+    <ngb-pagination
+      [collectionSize]="meta.totalItems"
+      [page]="page"
+      [pageSize]="meta.itemsPerPage"
+      [maxSize]="5"
+      [rotate]="true"
+      [ellipses]="false"
+      (pageChange)="changePage($event)"
+    ></ngb-pagination>
+  </div>
 </app-card>
+<app-modal-parishioners #modal (onSave)="onSaved()"></app-modal-parishioners>

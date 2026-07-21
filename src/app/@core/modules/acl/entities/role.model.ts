@@ -1,6 +1,7 @@
 import { ResultList as defaultResultList } from '../../../base/result-list';
 import { CompanyModel } from '../../company/entities/company.model';
 import { EntityBase } from '../../../base/entity.base';
+import { v4 as uuidv4 } from 'uuid';
 
 export namespace RoleModel {
   export type JsonProps = Omit<Entity, 'company' | 'toModel' | 'toEntity'> & {
@@ -24,6 +25,8 @@ export namespace RoleModel {
       super(props);
 
       Object.assign(this, props);
+
+      this.id = props.id ?? uuidv4();
 
       this.created_at = props.created_at
         ? new Date(props.created_at)

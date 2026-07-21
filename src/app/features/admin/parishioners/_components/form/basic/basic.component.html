@@ -1,0 +1,46 @@
+<section [formGroup]="form">
+  <div class="row">
+    <div class="form-group col-md-6 m-b-10">
+      <label>Empresa <span class="text-danger">*</span></label>
+      <app-company-selector
+        #companySelector
+        (selected)="onCompanySelected($event)"
+      ></app-company-selector>
+      @if (form.get('company_id').touched && !form.get('company_id').value) {
+        <div class="text text-danger mt-1">Empresa é obrigatória</div>
+      }
+    </div>
+  </div>
+  <div class="row">
+    <div class="form-group col-md-6 m-b-10">
+      <label>Nome <span class="text-danger">*</span></label>
+      <input
+        class="form-control"
+        [class.is-invalid]="form.controls['name'].touched && form.controls['name'].invalid"
+        formControlName="name"
+      />
+      @if (form.controls['name'].touched && form.controls['name'].errors?.['required']) {
+        <div class="text text-danger mt-1">Nome é obrigatório</div>
+      }
+    </div>
+    <div class="form-group col-md-6 m-b-10">
+      <label>Documento</label>
+      <input class="form-control" formControlName="document" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="form-group col-md-3 m-b-10">
+      <label>DDI</label>
+      <input
+        class="form-control"
+        type="number"
+        placeholder="ex. 55"
+        formControlName="country_code"
+      />
+    </div>
+    <div class="form-group col-md-4 m-b-10">
+      <label>Telefone</label>
+      <input class="form-control" formControlName="phone_number" />
+    </div>
+  </div>
+</section>

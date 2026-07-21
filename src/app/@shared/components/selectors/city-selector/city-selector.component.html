@@ -1,0 +1,27 @@
+<div class="input-group">
+  <select2
+    [data]="data"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="!stateId"
+    [customSearchEnabled]="true"
+    [minCharForSearch]="0"
+    [noResultMessage]="
+      !stateId
+        ? 'Selecione um estado primeiro'
+        : isLoading
+          ? 'Buscando...'
+          : 'Nenhuma cidade encontrada'
+    "
+    (search)="onSearch($event)"
+    (update)="onUpdate($event)"
+  ></select2>
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    title="Limpar"
+    (click)="clear()"
+  >
+    <i class="fa-solid fa-eraser"></i>
+  </button>
+</div>

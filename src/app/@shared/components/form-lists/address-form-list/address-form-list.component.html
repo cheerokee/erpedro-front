@@ -1,0 +1,188 @@
+<div ngbAccordion #accordion="ngbAccordion" class="m-b-20" >
+  <div ngbAccordionItem >
+    <div ngbAccordionHeader>
+      <div class="p-10 d-flex justify-content-between">
+        <h4 class="m-0 p-0 align-self-center">Cadastro de endereço</h4>
+
+        @if (showForm) {
+          <div class="d-flex">
+            <button class="btn btn-sm btn-outline-danger me-2" (click)="closeForm()">
+              <i class="fa fa-plus"></i>&nbsp;Cancelar
+            </button>
+            <i class="fa fa-chevron-up align-self-center"></i>
+          </div>
+        } @else {
+          <div class="d-flex">
+            <button class="btn btn-sm btn-outline-primary me-2" (click)="openForm()">
+              <i class="fa fa-plus"></i>&nbsp;Novo Registro
+            </button>
+            <i class="fa fa-chevron-down align-self-center"></i>
+          </div>
+        }
+
+      </div>
+    </div>
+    <div ngbAccordionCollapse>
+      <div ngbAccordionBody>
+        <ng-template>
+          <form [formGroup]="form">
+            <section>
+              <div class="row m-b-10">
+                <div class="form-group col-md-6">
+                  <label>País</label>
+                  <app-country-selector
+                    #countrySelector
+                    (selected)="onCountrySelected($event)"
+                  ></app-country-selector>
+                  @if (!form.get('country_id').value) {
+                    <div class="text text-muted mt-1">Selecione um país para liberar os demais campos</div>
+                  }
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-3 m-b-10">
+                  <label>CEP</label>
+                  <input
+                    class="form-control"
+                    [class.is-invalid]="form.controls['zip_code'].touched && form.controls['zip_code'].invalid"
+                    formControlName="zip_code"
+                    [placeholder]="isBrazilSelected ? '00000-000' : ''"
+                    [attr.maxlength]="isBrazilSelected ? 9 : null"
+                    (input)="onZipCodeInput($event)"
+                  />
+                  @if (form.controls['zip_code'].touched && form.controls['zip_code'].errors?.['required']) {
+                    <div class="text text-danger mt-1">CEP é obrigatório</div>
+                  }
+                </div>
+                <div class="form-group col-md-9 m-b-10">
+                  <label>Rua</label>
+                  <input
+                    class="form-control"
+                    [class.is-invalid]="form.controls['street'].touched && form.controls['street'].invalid"
+                    formControlName="street"
+                  />
+                  @if (form.controls['street'].touched && form.controls['street'].errors?.['required']) {
+                    <div class="text text-danger mt-1">Rua é obrigatória</div>
+                  }
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-2 m-b-10">
+                  <label>Nº</label>
+                  <input
+                    class="form-control"
+                    [class.is-invalid]="form.controls['number'].touched && form.controls['number'].invalid"
+                    placeholder="ex. 1234, S/N, etc."
+                    formControlName="number"
+                  />
+                  @if (form.controls['number'].touched && form.controls['number'].errors?.['required']) {
+                    <div class="text text-danger mt-1">Número é obrigatório</div>
+                  }
+                </div>
+                <div class="form-group col-md-4 m-b-10">
+                  <label>Bairro</label>
+                  <input class="form-control" formControlName="neighborhood" />
+                </div>
+                <div class="form-group col-md-3 m-b-10">
+                  <label>Tipo</label>
+                  <select class="form-control" formControlName="type">
+                    <option [value]="null">Selecione...</option>
+                    @for (option of addressTypeOptions; track option) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="form-group col-md-3 m-b-10 d-flex justify-content-center align-items-end">
+                  <div class="form-check form-switch align-self-center">
+                    <input
+                      class="form-check-input"
+                      id="address-is-main"
+                      type="checkbox"
+                      role="switch"
+                      formControlName="is_main"
+                    />
+                    <label class="form-check-label" for="address-is-main">Principal</label>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-6 m-b-10">
+                  <label>Estado</label>
+                  <app-state-selector
+                    #stateSelector
+                    [countryId]="form.get('country_id').value"
+                    (selected)="onStateSelected($event)"
+                  ></app-state-selector>
+                </div>
+                <div class="form-group col-md-6 m-b-10">
+                  <label>Cidade</label>
+                  <app-city-selector
+                    #citySelector
+                    [stateId]="form.get('state_id').value"
+                    (selected)="onCitySelected($event)"
+                  ></app-city-selector>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-md-12">
+                  <label>Complemento</label>
+                  <input class="form-control" formControlName="complement" />
+                </div>
+              </div>
+
+              <div class="row m-t-20">
+                <div class="col-12 d-flex justify-content-end">
+                  @if (form.get('id').value) {
+                    <button type="button" (click)="clear()" class="btn btn-light me-2">Cancelar</button>
+                    <button type="button" (click)="save()" [disabled]="form.invalid || !form.get('country_id').value" class="btn btn-primary">
+                      <i class="fa fa-save"></i>&nbsp;Atualizar
+                    </button>
+                  } @else {
+                    <button type="button" (click)="add()" [disabled]="form.invalid || !form.get('country_id').value" class="btn btn-primary">
+                      <i class="fa fa-plus"></i>&nbsp;Adicionar
+                    </button>
+                  }
+                </div>
+              </div>
+            </section>
+          </form>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="table-responsive custom-scrollbar">
+  <table class="table table-bordered border-bottom-table">
+    <thead>
+    <tr class="border-bottom-primary">
+      <th scope="col">Endereço</th>
+      <th scope="col">CEP</th>
+      <th scope="col">Cidade</th>
+      <th scope="col">Estado</th>
+      <th scope="col">País</th>
+      <th scope="col">Principal?</th>
+      <th scope="col">Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (item of data; track item.id) {
+        <tr>
+          <td>{{ item.street }}, {{ item.number }}{{ item.neighborhood ? ' - ' + item.neighborhood : '' }}</td>
+          <td>{{ item.zip_code }}</td>
+          <td>{{ item.city?.name ?? '-' }}</td>
+          <td>{{ item.state?.name ?? '-' }}</td>
+          <td>{{ item.country?.name ?? '-' }}</td>
+          <td>{{ item.is_main ? 'Sim' : 'Não' }}</td>
+          <td>
+            <button type="button" (click)="edit(item.id)" class="btn btn-primary btn-sm me-1">Editar</button>
+            <button type="button" (click)="remove(item.id)" class="btn btn-danger btn-sm">Remover</button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="text-center">Nenhum endereço adicionado</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

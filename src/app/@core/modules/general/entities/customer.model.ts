@@ -3,6 +3,7 @@ import { EntityBase } from '../../../base/entity.base';
 import { UserModel } from '../../account/entities/user.model';
 import { CompanyModel } from '../../company/entities/company.model';
 import { AddressModel } from '../../address/entities/address.model';
+import { v4 as uuidv4 } from 'uuid';
 
 export namespace CustomerModel {
   export type JsonProps = Omit<
@@ -37,6 +38,8 @@ export namespace CustomerModel {
       super(props);
 
       Object.assign(this, props);
+
+      this.id = props.id ?? uuidv4();
 
       this.created_at = props.created_at
         ? new Date(props.created_at)

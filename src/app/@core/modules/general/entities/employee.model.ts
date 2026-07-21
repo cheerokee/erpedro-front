@@ -3,6 +3,7 @@ import { EntityBase } from '../../../base/entity.base';
 import { UserModel } from '../../account/entities/user.model';
 import { CompanyModel } from '../../company/entities/company.model';
 import { AddressModel } from '../../address/entities/address.model';
+import { v4 as uuidv4 } from 'uuid';
 
 export namespace EmployeeModel {
   export type JsonProps = Omit<
@@ -21,6 +22,7 @@ export namespace EmployeeModel {
     deleted_at?: Date;
 
     name: string;
+    email: string;
     country_code?: number;
     phone_number?: number;
 
@@ -36,6 +38,8 @@ export namespace EmployeeModel {
       super(props);
 
       Object.assign(this, props);
+
+      this.id = props.id ?? uuidv4();
 
       this.created_at = props.created_at
         ? new Date(props.created_at)
@@ -84,6 +88,17 @@ export namespace EmployeeModel {
           ),
         }),
       });
+    }
+  }
+
+  export class Filter {
+    name?: string;
+    email?: string;
+    user_id?: string;
+    company_id?: string;
+
+    constructor(props: Partial<Filter>) {
+      Object.assign(this, props);
     }
   }
 

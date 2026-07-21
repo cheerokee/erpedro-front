@@ -1,18 +1,20 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 
 import { ResultModel } from '../../../models/result.model';
-import { HttpService } from '../../../services/http-service';
+import { BaseCrudHttp } from '../../../base/base-crud-http';
 import { CompanyModel } from '../entities/company.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class CompanyService extends HttpService {
-  constructor(public readonly httpClient: HttpClient) {
-    super(httpClient);
+export class CompanyService extends BaseCrudHttp<
+  CompanyModel.Entity,
+  CompanyModel.JsonProps
+> {
+  constructor(public override readonly httpClient: HttpClient) {
+    super(httpClient, 'v1/companies');
   }
 
   byLike(
@@ -22,9 +24,12 @@ export class CompanyService extends HttpService {
     const params = new HttpParams().set('q', q).set('take', take);
 
     return this.httpClient
-      .get<ResultModel<CompanyModel.Entity[]>>(`${this.path}/v1/companies/by-like`, {
-        params,
-      })
+      .get<ResultModel<CompanyModel.Entity[]>>(
+        `${this.path}/v1/companies/by-like`,
+        {
+          params,
+        },
+      )
       .pipe(
         map((result) => {
           if (result.data) {
@@ -32,24 +37,6 @@ export class CompanyService extends HttpService {
               (company) =>
                 new CompanyModel.Entity({ id: company.id, name: company.name }),
             );
-          }
-
-          return result;
-        }),
-      );
-  }
-
-  get(id: string): Observable<ResultModel<CompanyModel.Entity>> {
-    return this.httpClient
-      .get<ResultModel<CompanyModel.Entity>>(`${this.path}/v1/companies/${id}`)
-      .pipe(
-        map((result) => {
-          if (result.data) {
-            const company = result.data;
-            result.data = new CompanyModel.Entity({
-              id: company.id,
-              name: company.name,
-            });
           }
 
           return result;
@@ -76,22 +63,4 @@ export class CompanyService extends HttpService {
         }),
       );
   }
-
-  // list(skip: number = 1, take: number = 100) {
-  //   const fnName: string = 'companyList';
-  //   return this.apollo.watchQuery({ query: gql`
-  //     query {
-  //       ${ fnName }(skip: ${ skip }, take: ${ take }) {
-  //         data {
-  //           id
-  //         }
-  //       }
-  //     }
-  //   `,})
-  //     .valueChanges
-  //     .pipe(map(result => {
-  //       const data: any = result?.data;
-  //       return data?.[fnName];
-  //     }));
-  // }
 }

@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { NgbAccordionModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { CustomerModel } from '../../../../../@core/modules/general/entities/customer.model';
+import { CompanyModel } from '../../../../../@core/modules/company/entities/company.model';
+import { CompanySelectorComponent } from '../../../../../@shared/components/selectors/company-selector/company-selector.component';
 import { SharedModule } from '../../../../../@shared/shared.module';
 import { FilterStore } from '../../_services/filter.store';
 import { FeatherIcon } from '../../../../../@shared/components/ui/feather-icon/feather-icon';
@@ -11,12 +13,18 @@ import { FeatherIcon } from '../../../../../@shared/components/ui/feather-icon/f
   selector: 'app-filter-parishioners',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
-  imports: [SharedModule, NgbAccordionModule, FeatherIcon],
-  providers: [FilterStore],
+  imports: [
+    SharedModule,
+    NgbAccordionModule,
+    FeatherIcon,
+    CompanySelectorComponent,
+  ],
 })
 export class FilterComponent {
   filter = new CustomerModel.Filter({});
   form: FormGroup;
+
+  @ViewChild('companySelector') companySelectorRef: CompanySelectorComponent;
 
   constructor(
     private filterStore: FilterStore,
@@ -57,7 +65,12 @@ export class FilterComponent {
     });
   }
 
+  onCompanySelected(entity: CompanyModel.Entity | null) {
+    this.form.get('company_id').setValue(entity?.id ?? null);
+  }
+
   clear() {
     this.default();
+    this.companySelectorRef?.clear();
   }
 }

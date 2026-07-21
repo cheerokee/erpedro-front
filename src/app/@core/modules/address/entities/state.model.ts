@@ -1,6 +1,7 @@
 import { ResultList as defaultResultList } from '../../../base/result-list';
 import { EntityBase } from '../../../base/entity.base';
 import { CountryModel } from './country.model';
+import { v4 as uuidv4 } from 'uuid';
 
 export namespace StateModel {
   export type JsonProps = Omit<Entity, 'country' | 'toModel' | 'toEntity'> & {
@@ -23,6 +24,8 @@ export namespace StateModel {
       super(props);
 
       Object.assign(this, props);
+
+      this.id = props.id ?? uuidv4();
 
       this.created_at = props.created_at
         ? new Date(props.created_at)
@@ -50,7 +53,7 @@ export namespace StateModel {
       const { country, ...props } = data;
       return new Entity({
         ...props,
-        created_at: new Date(props.created_at),
+        created_at: props.created_at ? new Date(props.created_at) : new Date(),
         updated_at: props.updated_at ? new Date(props.updated_at) : null,
         deleted_at: props.deleted_at ? new Date(props.deleted_at) : null,
         ...(country && { country: CountryModel.Entity.toEntity(country) }),

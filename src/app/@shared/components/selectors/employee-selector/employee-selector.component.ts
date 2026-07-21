@@ -81,6 +81,8 @@ export class EmployeeSelectorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onUpdate(event: Select2UpdateEvent) {
+    this.value = (event.value as string) ?? null;
+
     const employee =
       this.employees.find((employee) => employee.id === event.value) ?? null;
 

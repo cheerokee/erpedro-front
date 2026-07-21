@@ -1,35 +1,54 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Apollo } from 'apollo-angular';
 import { map, Observable } from 'rxjs';
 
-import { HttpService } from '../../../services/http-service';
+import { BaseCrudHttp } from '../../../base/base-crud-http';
 import { ResultModel } from '../../../models/result.model';
+import { RoleModel } from '../../acl/entities/role.model';
 import { UserModel } from '../entities/user.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class UserService extends HttpService {
-  constructor(
-    public readonly httpClient: HttpClient,
-    private apollo: Apollo,
-  ) {
-    super(httpClient);
+export class UserService extends BaseCrudHttp<
+  UserModel.Entity,
+  UserModel.JsonProps
+> {
+  constructor(public override readonly httpClient: HttpClient) {
+    super(httpClient, 'v1/users');
   }
 
-  get(id: string): Observable<ResultModel<UserModel.Entity>> {
+  byLike(
+    q: string = '',
+    take: number = 20,
+    roleTypes: RoleModel.RoleTypeEnum[] = [],
+    roleIds: string[] = [],
+  ): Observable<ResultModel<UserModel.Entity[]>> {
+    let params = new HttpParams().set('q', q).set('take', take);
+
+    for (const roleType of roleTypes) {
+      params = params.append('roleTypes', roleType);
+    }
+
+    for (const roleId of roleIds) {
+      params = params.append('roleIds', roleId);
+    }
+
     return this.httpClient
-      .get<ResultModel<UserModel.Entity>>(`${this.path}/v1/users/${id}`)
+      .get<ResultModel<UserModel.Entity[]>>(`${this.path}/v1/users/by-like`, {
+        params,
+      })
       .pipe(
         map((result) => {
           if (result.data) {
-            const user = result.data;
-            result.data = new UserModel.Entity({
-              id: user.id,
-              name: user.name,
-              email: user.email,
-            });
+            result.data = result.data.map(
+              (user) =>
+                new UserModel.Entity({
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                }),
+            );
           }
 
           return result;
@@ -47,36 +66,4 @@ export class UserService extends HttpService {
       data,
     );
   }
-
-  update(
-    id: string,
-    data: Partial<Omit<UserModel.Entity, 'id' | 'updated_at'>>,
-  ): Observable<ResultModel<any>> {
-    return this.httpClient.put<ResultModel<UserModel.Entity>>(
-      `${this.path}/v1/users/${id}`,
-      data,
-    );
-  }
-
-  // list(skip: number = 1, take: number = 100) {
-  //   const fnName: string = 'userList';
-  //   return this.apollo
-  //     .watchQuery({
-  //       query: gql`
-  //     query {
-  //       ${fnName}(skip: ${skip}, take: ${take}) {
-  //         data {
-  //           id
-  //         }
-  //       }
-  //     }
-  //   `,
-  //     })
-  //     .valueChanges.pipe(
-  //       map((result) => {
-  //         const data: any = result?.data;
-  //         return data?.[fnName];
-  //       }),
-  //     );
-  // }
 }

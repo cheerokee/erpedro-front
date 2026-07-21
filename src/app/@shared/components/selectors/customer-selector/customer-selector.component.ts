@@ -81,6 +81,8 @@ export class CustomerSelectorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onUpdate(event: Select2UpdateEvent) {
+    this.value = (event.value as string) ?? null;
+
     const customer =
       this.customers.find((customer) => customer.id === event.value) ?? null;
 

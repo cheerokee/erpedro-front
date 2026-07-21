@@ -1,0 +1,24 @@
+<ng-template #contentElement >
+  @if(hasHeaderContent) {
+    <div class="modal-header d-flex justify-content-between">
+      <div>
+        <ng-content select="modal-header" />
+      </div>
+      <button type="button" class="btn-close" aria-label="Close" (click)="modalRef.dismiss(modalDismissCustomReasons.CROSS_CLICK)"></button>
+    </div>
+  }
+  @if(hasBodyContent) {
+    <div class="modal-body">
+      <ng-content select="modal-body" />
+    </div>
+  }
+  @if(hasFooterContent) {
+    <div class="modal-footer">
+      <section class="full-witdh m-0 p-0">
+        <ng-content select="modal-footer" />
+      </section>
+    </div>
+  }
+</ng-template>
+
+<!--    <button type="button" class="btn btn-outline-secondary" (click)="modalRef.close(modalDismissCustomReasons.SUBMIT)">Save</button>-->

@@ -67,6 +67,8 @@ export class CompanySelectorComponent implements OnInit, OnDestroy {
   }
 
   onUpdate(event: Select2UpdateEvent) {
+    this.value = (event.value as string) ?? null;
+
     const company =
       this.companies.find((company) => company.id === event.value) ?? null;
 
@@ -84,14 +86,20 @@ export class CompanySelectorComponent implements OnInit, OnDestroy {
         next: (result) => {
           if (!result.data) return;
 
+          // .get() devolve JsonProps cru (não Entity) — construir direto
+          // (mesmo padrão de byLike/getPublicInfo acima) evita o bug de
+          // Invalid Date de CompanyModel.Entity.toEntity (AI_CONTEXT.md §7).
+          const company = new CompanyModel.Entity({
+            id: result.data.id,
+            name: result.data.name,
+          });
+
           this.setCompanies([
-            result.data,
-            ...this.companies.filter(
-              (company) => company.id !== result.data.id,
-            ),
+            company,
+            ...this.companies.filter((c) => c.id !== company.id),
           ]);
-          this.value = result.data.id;
-          this.selected.emit(result.data);
+          this.value = company.id;
+          this.selected.emit(company);
         },
       });
   }

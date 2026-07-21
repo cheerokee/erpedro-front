@@ -1,29 +1,134 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { SharedModule } from '../../../../../@shared/shared.module';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
+import { Subject, switchMap, takeUntil } from 'rxjs';
+
+import {
+  CustomerListItem,
+  CustomerListResult,
+  CustomerService,
+} from '../../../../../@core/modules/general/services/customer.service';
+import { CustomerModel } from '../../../../../@core/modules/general/entities/customer.model';
+import { AlertService } from '../../../../../@core/services/alert.service';
+import { ModalParishionersComponent } from '../modal/modal.component';
 import { Card } from '../../../../../@shared/components/ui/card/card';
-import { basicTable } from '../../../../../@shared/data/bootstrap-table';
+import { SharedModule } from '../../../../../@shared/shared.module';
 import { FilterComponent } from '../filter/filter.component';
-import { CompanySelectorComponent } from '../../../../../@shared/components/selectors/company-selector/company-selector.component';
-import { getAuthenticatedUser } from '../../../../../@core/utils/get-authenticated-user.helper';
+import { FilterStore } from '../../_services/filter.store';
+
+const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-data-list-parishioners',
   templateUrl: './data-list.component.html',
   styleUrls: ['./data-list.component.scss'],
-  imports: [SharedModule, Card, FilterComponent, CompanySelectorComponent],
+  imports: [
+    SharedModule,
+    Card,
+    FilterComponent,
+    ModalParishionersComponent,
+    NgbPagination,
+  ],
+  // FilterStore precisa ser o mesmo instance para pai (DataListComponent) e
+  // filho (FilterComponent) — provido aqui (ancestral comum) em vez de no
+  // FilterComponent, já que a injeção de dependência do Angular só resolve
+  // provider de um componente para ele mesmo e seus descendentes, nunca para
+  // um ancestral.
+  providers: [FilterStore],
 })
-export class DataListComponent implements AfterViewInit {
-  public basicTable = basicTable;
+export class DataListComponent implements OnInit, OnDestroy {
+  rows: CustomerListItem[] = [];
+  meta = { totalItems: 0, itemCount: 0, itemsPerPage: PAGE_SIZE };
+  page = 1;
+  loading = false;
 
-  @ViewChild('companySelector') companySelector: CompanySelectorComponent;
+  @ViewChild('modal') modal: ModalParishionersComponent;
 
-  ngAfterViewInit() {
-    const authenticatedUser = getAuthenticatedUser();
+  private readonly destroy$ = new Subject<void>();
+  private filter = new CustomerModel.Filter({});
 
-    if (this.companySelector && authenticatedUser.companies?.length > 0) {
-      console.log(authenticatedUser.companies[0].id);
+  constructor(
+    private readonly customerService: CustomerService,
+    private readonly filterStore: FilterStore,
+    private readonly alertService: AlertService,
+  ) {}
 
-      this.companySelector.autoset(authenticatedUser.companies[0].id);
-    }
+  ngOnInit() {
+    this.filterStore.store$
+      .pipe(
+        switchMap((filter) => {
+          this.filter = filter;
+          this.page = 1;
+          this.loading = true;
+          return this.customerService.list(this.filter, this.page, PAGE_SIZE);
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: (result) => this.applyResult(result),
+        error: () => (this.loading = false),
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  changePage(page: number) {
+    this.page = page;
+    this.fetch();
+  }
+
+  fetch() {
+    this.loading = true;
+    this.customerService
+      .list(this.filter, this.page, PAGE_SIZE)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => this.applyResult(result),
+        error: () => (this.loading = false),
+      });
+  }
+
+  new() {
+    this.modal.show();
+  }
+
+  edit(id: string) {
+    this.modal.show(id);
+  }
+
+  async remove(id: string) {
+    const confirmation = await this.alertService.confirm({
+      title: 'Remover paroquiano?',
+      text: 'Essa ação não poderá ser desfeita.',
+    });
+
+    if (!confirmation.isConfirmed) return;
+
+    this.customerService
+      .delete(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.fetch(),
+        error: () => {
+          this.alertService.alert({
+            title: 'Ops, houve um erro!',
+            text: 'Não foi possível remover o registro',
+            icon: 'error',
+            timer: 3000,
+          });
+        },
+      });
+  }
+
+  onSaved() {
+    this.fetch();
+  }
+
+  private applyResult(result: CustomerListResult) {
+    this.loading = false;
+    this.rows = result.items;
+    this.meta = result.meta;
   }
 }
