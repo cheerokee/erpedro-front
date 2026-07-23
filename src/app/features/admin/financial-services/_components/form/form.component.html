@@ -1,0 +1,38 @@
+<div class="vertical-main-wizard">
+  <div class="row g-3">
+    <div class="col-xxl-3 col-xl-4 col-12">
+      <div ngbNav
+           #nav="ngbNav"
+           [(activeId)]="active"
+           class="nav flex-column header-vertical-wizard"
+           orientation="vertical">
+        @for (tab of verticalValidation; track tab; let i = $index) {
+          <div [ngbNavItem]="i + 1">
+            <a class="nav-link" ngbNavLink>
+              <div class="vertical-wizard">
+                <div class="stroke-icon-wizard">
+                  <i class="fa-solid fa-{{ tab.class }}"></i>
+                </div>
+                <div class="vertical-wizard-content">
+                  <h6>{{ tab.title }}</h6>
+                  <p>{{ tab.text }}</p>
+                </div>
+              </div>
+            </a>
+
+            <ng-template ngbNavContent>
+              <section [formGroup]="form">
+                @if (tab.value === financialServiceTabEnum.BASIC) {
+                  <app-form-basic-financial-service #formBasic></app-form-basic-financial-service>
+                }
+              </section>
+            </ng-template>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="col-xxl-9 col-xl-8 col-12">
+      <div [ngbNavOutlet]="nav"></div>
+    </div>
+  </div>
+</div>

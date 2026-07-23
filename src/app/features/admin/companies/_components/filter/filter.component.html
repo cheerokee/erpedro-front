@@ -1,0 +1,33 @@
+<section class="accordion dark-accordion" ngbAccordion>
+  <div class="accordion-item" ngbAccordionItem [collapsed]="false">
+    <h2 class="accordion-header" ngbAccordionHeader>
+      <button class="accordion-button collapsed accordion-light-primary txt-primary active"
+              type="button"
+              ngbAccordionButton>
+        Filtro
+        <app-feather-icon [icon]="'chevron-down'" [class]="'svg-color'" />
+      </button>
+    </h2>
+    <div class="accordion-collapse collapse show" ngbAccordionCollapse>
+      <div [formGroup]="form" class="accordion-body" ngbAccordionBody >
+        <div class="row">
+          <div class="col-md-4 form-group">
+            <label>Nome</label>
+            <input formControlName="name" class="form-control" />
+          </div>
+          <div class="col-md-4 form-group">
+            <label>Responsável</label>
+            <app-user-selector #userSelector (selected)="onOwnerSelected($event)"></app-user-selector>
+          </div>
+        </div>
+        <div class="row m-t-10">
+          <div class="col-12 d-flex justify-content-end">
+            <button type="button" class="btn btn-light btn-sm" (click)="clear()">
+              <i class="fa fa-eraser"></i>&nbsp;Limpar filtros
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

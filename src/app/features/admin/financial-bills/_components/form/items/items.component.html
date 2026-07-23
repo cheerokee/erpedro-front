@@ -1,0 +1,63 @@
+<section>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">Serviço</th>
+        <th scope="col">Qtd.</th>
+        <th scope="col">Preço unit.</th>
+        <th scope="col">Descrição</th>
+        <th scope="col">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (item of items; track item.id) {
+          <tr>
+            <td>{{ item.service?.name ?? '-' }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit_price | currency:'BRL' }}</td>
+            <td>{{ item.description ?? '-' }}</td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" (click)="remove(item.id)">Remover</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center">Nenhum item adicionado</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div [formGroup]="addForm" class="row g-2 align-items-end border-top pt-3">
+    <div class="col-md-4 form-group">
+      <label>Serviço</label>
+      <app-financial-service-selector
+        [companyId]="companyId"
+        (selected)="onServiceSelected($event)"
+      ></app-financial-service-selector>
+    </div>
+    <div class="col-md-2 form-group">
+      <label>Quantidade</label>
+      <input type="number" min="1" class="form-control" formControlName="quantity"/>
+    </div>
+    <div class="col-md-2 form-group">
+      <label>Preço unit.</label>
+      <input type="number" step="0.01" min="0" class="form-control" formControlName="unit_price"/>
+    </div>
+    <div class="col-md-3 form-group">
+      <label>Descrição</label>
+      <input class="form-control" formControlName="description"/>
+    </div>
+    <div class="col-md-1 form-group">
+      <button type="button" class="btn btn-primary btn-sm w-100" [disabled]="saving" (click)="add()">
+        <i class="fa fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="text-end mt-2">
+    <strong>Total dos itens: {{ total | currency:'BRL' }}</strong>
+  </div>
+</section>

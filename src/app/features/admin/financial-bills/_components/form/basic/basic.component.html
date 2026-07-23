@@ -1,0 +1,56 @@
+<section [formGroup]="form">
+  <div class="row">
+    <div class="form-group col-md-6 m-b-10">
+      <label>Paróquia <span class="text-danger">*</span></label>
+      <app-company-selector
+        #companySelector
+        [disabled]="editMode"
+        (selected)="onCompanySelected($event)"
+      ></app-company-selector>
+      @if (!editMode && form.get('company_id').touched && !form.get('company_id').value) {
+        <div class="text text-danger mt-1">Paróquia é obrigatória</div>
+      }
+    </div>
+    <div class="form-group col-md-6 m-b-10">
+      <label>Devedor (Paroquiano) <span class="text-danger">*</span></label>
+      <app-customer-selector
+        #customerSelector
+        [companyId]="companyId"
+        [disabled]="editMode"
+        (selected)="onCustomerSelected($event)"
+      ></app-customer-selector>
+      @if (!editMode && form.get('customer_id').touched && !form.get('customer_id').value) {
+        <div class="text text-danger mt-1">Devedor é obrigatório</div>
+      }
+    </div>
+  </div>
+  <div class="row">
+    <div class="form-group col-md-4 m-b-10">
+      <label>Emissão <span class="text-danger">*</span></label>
+      <input type="date" class="form-control"
+             [class.is-invalid]="form.controls['release_date'].touched && form.controls['release_date'].invalid"
+             formControlName="release_date"/>
+      @if (form.controls['release_date'].touched && form.controls['release_date'].errors?.['required']) {
+        <div class="text text-danger mt-1">Emissão é obrigatória</div>
+      }
+    </div>
+    <div class="form-group col-md-4 m-b-10">
+      <label>Total</label>
+      <input type="number" step="0.01" class="form-control" [readonly]="!editMode" formControlName="total"/>
+      @if (!editMode) {
+        <small class="text-muted">Calculado a partir das parcelas.</small>
+      }
+    </div>
+    @if (editMode) {
+      <div class="form-group col-md-4 m-b-10">
+        <label>Situação</label>
+        <select formControlName="status" class="form-select">
+          <option [ngValue]="statusEnum.OPEN">{{ statusEnumStr.OPEN }}</option>
+          <option [ngValue]="statusEnum.PARTIALLY_PAID">{{ statusEnumStr.PARTIALLY_PAID }}</option>
+          <option [ngValue]="statusEnum.PAID">{{ statusEnumStr.PAID }}</option>
+          <option [ngValue]="statusEnum.CANCELED">{{ statusEnumStr.CANCELED }}</option>
+        </select>
+      </div>
+    }
+  </div>
+</section>

@@ -12,6 +12,26 @@ export interface CustomerListItem extends CustomerModel.JsonProps {
   company?: { id: string; name: string };
 }
 
+export interface CustomerExportAddress {
+  is_main: boolean;
+  street: string;
+  number: string;
+  neighborhood?: string;
+  zip_code: string;
+  city?: { name: string };
+  state?: { name: string };
+  country?: { name: string };
+}
+
+export type CustomerExportItem = Omit<
+  CustomerListItem,
+  'addresses' | 'father' | 'mother'
+> & {
+  addresses?: CustomerExportAddress[];
+  father?: { name: string };
+  mother?: { name: string };
+};
+
 export interface CustomerListMeta {
   totalItems: number;
   itemCount: number;
@@ -50,6 +70,67 @@ const CUSTOMER_LIST_QUERY = gql`
   }
 `;
 
+// Usada só pela exportação Excel (data-list.component.ts) — não pela tabela
+// paginada — para não sobrecarregar cada troca de página/filtro com os
+// campos de endereço, que só são necessários no arquivo exportado.
+const CUSTOMER_EXPORT_QUERY = gql`
+  query CustomerExportList($take: Float, $skip: Float, $filter: [FilterParam!]) {
+    customerList(take: $take, skip: $skip, filter: $filter) {
+      items {
+        id
+        name
+        document
+        country_code
+        phone_number
+        gender
+        birthdate
+        place_birth
+        company {
+          id
+          name
+        }
+        father {
+          id
+          name
+        }
+        mother {
+          id
+          name
+        }
+        addresses {
+          is_main
+          street
+          number
+          neighborhood
+          zip_code
+          city {
+            name
+          }
+          state {
+            name
+          }
+          country {
+            name
+          }
+        }
+      }
+      meta {
+        totalItems
+        itemCount
+        itemsPerPage
+        totalPages
+        currentPage
+      }
+    }
+  }
+`;
+
+// Sem paginação real na exportação (usuário decide "lista completa" ou
+// "lista filtrada", nunca uma página específica) — take bem acima de
+// qualquer volume esperado de paroquianos, já que o backend não impõe
+// limite máximo em BaseListArgs.
+const EXPORT_TAKE = 100000;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -80,6 +161,22 @@ export class CustomerService extends BaseCrudHttp<
         fetchPolicy: 'no-cache',
       })
       .pipe(map((result) => result.data.customerList));
+  }
+
+  listForExport(
+    filter: CustomerModel.Filter,
+  ): Observable<CustomerExportItem[]> {
+    return this.apollo
+      .query<{ customerList: { items: CustomerExportItem[] } }>({
+        query: CUSTOMER_EXPORT_QUERY,
+        variables: {
+          take: EXPORT_TAKE,
+          skip: 1,
+          filter: this.buildFilterParams(filter),
+        },
+        fetchPolicy: 'no-cache',
+      })
+      .pipe(map((result) => result.data.customerList.items));
   }
 
   private buildFilterParams(filter: CustomerModel.Filter) {

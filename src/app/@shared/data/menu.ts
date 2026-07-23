@@ -21,8 +21,20 @@ export const menuItems: IMenu[] = [
     active: true,
     level: 1,
     children: [
+      { path: '/admin/companies', title: 'Paróquias', type: 'link' },
       { path: '/admin/employees', title: 'Colaboradores', type: 'link' },
       { path: '/admin/parishioners', title: 'Paroquianos', type: 'link' },
+    ],
+  },
+  {
+    title: 'Financeiro',
+    icon: 'price',
+    type: 'sub',
+    active: false,
+    level: 1,
+    children: [
+      { path: '/admin/financial-services', title: 'Serviços Financeiros', type: 'link' },
+      { path: '/admin/financial-bills', title: 'Faturas', type: 'link' },
     ],
   },
 ];

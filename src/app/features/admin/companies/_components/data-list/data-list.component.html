@@ -1,0 +1,62 @@
+<app-card [border]="true"
+          [padding]="false"
+          [cardBodyClass]="'p-0'">
+  <div class="f-m-light mt-1" headerNoTitle>
+    <div class="row">
+      <div class="col-12 m-b-10"><app-filter-companies></app-filter-companies></div>
+      <div class="col-12">
+        <div class="pull-right">
+          <button (click)="new()" class="btn btn-primary">
+            <i class="fa fa-plus"></i>&nbsp;Novo Registro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive custom-scrollbar">
+    <table class="table border-bottom-table">
+      <thead>
+      <tr class="border-bottom-primary">
+        <th scope="col">Nome</th>
+        <th scope="col">Responsável</th>
+        <th scope="col">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.id) {
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.owner?.name ?? '-' }}</td>
+            <td>
+              <button type="button" (click)="edit(row.id)" class="btn btn-primary btn-sm me-1">Editar</button>
+              <button type="button" (click)="remove(row.id)" class="btn btn-danger btn-sm">Remover</button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading) {
+            <tr>
+              <td colspan="5" class="text-center">Nenhuma paróquia encontrada</td>
+            </tr>
+          }
+        }
+        @if (loading) {
+          <tr>
+            <td colspan="5" class="text-center">Carregando...</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex justify-content-end p-10">
+    <ngb-pagination
+      [collectionSize]="meta.totalItems"
+      [page]="page"
+      [pageSize]="meta.itemsPerPage"
+      [maxSize]="5"
+      [rotate]="true"
+      [ellipses]="false"
+      (pageChange)="changePage($event)"
+    ></ngb-pagination>
+  </div>
+</app-card>
+<app-modal-companies #modal (onSave)="onSaved()"></app-modal-companies>

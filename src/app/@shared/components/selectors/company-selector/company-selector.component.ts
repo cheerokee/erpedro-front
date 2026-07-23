@@ -25,7 +25,8 @@ import { CompanyModel } from '../../../../@core/modules/company/entities/company
   imports: [SharedModule, Select2Module],
 })
 export class CompanySelectorComponent implements OnInit, OnDestroy {
-  @Input() placeholder: string = 'Selecione uma empresa';
+  @Input() placeholder: string = 'Selecione uma paróquia';
+  @Input() disabled: boolean = false;
   @Output() selected = new EventEmitter<CompanyModel.Entity | null>();
 
   data: Select2Data = [];
@@ -75,7 +76,7 @@ export class CompanySelectorComponent implements OnInit, OnDestroy {
     this.selected.emit(company);
   }
 
-  /** Preseleciona uma empresa por id (uso em telas de edição). */
+  /** Preseleciona uma paróquia por id (uso em telas de edição). */
   autoset(id: string) {
     if (!id) return;
 

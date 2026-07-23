@@ -36,7 +36,7 @@ export class BasicFormEmployeeComponent implements OnInit, AfterViewInit {
     this.form.get('company_id').markAsTouched();
   }
 
-  /** Preseleciona a empresa em telas de edição — chamado pelo componente pai. */
+  /** Preseleciona a paróquia em telas de edição — chamado pelo componente pai. */
   autoset(companyId: string | null) {
     if (companyId) this.companySelectorRef?.autoset(companyId);
   }

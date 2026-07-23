@@ -3,13 +3,14 @@
     [data]="data"
     [value]="value"
     [placeholder]="placeholder"
+    [disabled]="disabled"
     [customSearchEnabled]="true"
     [minCharForSearch]="0"
-    [noResultMessage]="isLoading ? 'Buscando...' : 'Nenhuma empresa encontrada'"
+    [noResultMessage]="isLoading ? 'Buscando...' : 'Nenhuma paróquia encontrada'"
     (search)="onSearch($event)"
     (update)="onUpdate($event)"
   ></select2>
-  <button type="button" class="btn btn-outline-secondary" title="Limpar" (click)="clear()">
+  <button type="button" class="btn btn-outline-secondary" title="Limpar" [disabled]="disabled" (click)="clear()">
     <i class="fa-solid fa-eraser"></i>
   </button>
 </div>

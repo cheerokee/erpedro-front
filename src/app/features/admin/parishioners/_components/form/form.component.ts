@@ -134,6 +134,11 @@ export class FormComponent implements OnChanges, OnInit {
       document: [null],
       country_code: [null],
       phone_number: [null],
+      gender: [null],
+      birthdate: [null],
+      place_birth: [null],
+      father_id: [null],
+      mother_id: [null],
       user_id: [null],
       company_id: [null, Validators.required],
       addresses: [[]],
@@ -149,6 +154,11 @@ export class FormComponent implements OnChanges, OnInit {
       document: null,
       country_code: null,
       phone_number: null,
+      gender: null,
+      birthdate: null,
+      place_birth: null,
+      father_id: null,
+      mother_id: null,
       user_id: null,
       company_id: null,
       addresses: [],
@@ -162,7 +172,8 @@ export class FormComponent implements OnChanges, OnInit {
     obs$.pipe(take(1)).subscribe({
       next: (result) => {
         if (result.success && result.data) {
-          const { company, user, addresses, ...otherData } = result.data;
+          const { company, user, addresses, father, mother, ...otherData } =
+            result.data;
 
           this.form.setValue({
             id: otherData.id,
@@ -170,13 +181,18 @@ export class FormComponent implements OnChanges, OnInit {
             document: otherData.document ?? null,
             country_code: otherData.country_code ?? null,
             phone_number: otherData.phone_number ?? null,
+            gender: otherData.gender ?? null,
+            birthdate: otherData.birthdate ?? null,
+            place_birth: otherData.place_birth ?? null,
+            father_id: otherData.father_id ?? father?.id ?? null,
+            mother_id: otherData.mother_id ?? mother?.id ?? null,
             user_id: otherData.user_id ?? user?.id ?? null,
             company_id: otherData.company_id ?? company?.id ?? null,
             addresses: addresses ?? [],
           });
           this.originalAddressIds = (addresses ?? []).map((address) => address.id);
 
-          this.formBasic?.autoset(this.form.get('company_id').value);
+          this.formBasic?.autoset();
           this.formAddress?.autoset();
         }
       },

@@ -3,12 +3,12 @@
     [data]="data"
     [value]="value"
     [placeholder]="placeholder"
-    [disabled]="!companyId"
+    [disabled]="disabled || !companyId"
     [customSearchEnabled]="true"
     [minCharForSearch]="0"
     [noResultMessage]="
       !companyId
-        ? 'Selecione uma empresa primeiro'
+        ? 'Selecione uma paróquia primeiro'
         : isLoading
           ? 'Buscando...'
           : 'Nenhum paroquiano encontrado'
@@ -20,6 +20,7 @@
     type="button"
     class="btn btn-outline-secondary"
     title="Limpar"
+    [disabled]="disabled"
     (click)="clear()"
   >
     <i class="fa-solid fa-eraser"></i>

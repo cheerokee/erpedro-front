@@ -100,12 +100,14 @@ export class EmployeeSelectorComponent implements OnInit, OnChanges, OnDestroy {
         next: (result) => {
           if (!result.data) return;
 
+          const entity = EmployeeModel.Entity.toEntity(result.data);
+
           this.setEmployees([
-            result.data,
+            entity,
             ...this.employees.filter((employee) => employee.id !== result.data.id),
           ]);
           this.value = result.data.id;
-          this.selected.emit(result.data);
+          this.selected.emit(entity);
         },
       });
   }

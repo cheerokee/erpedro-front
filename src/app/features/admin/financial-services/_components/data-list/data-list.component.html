@@ -1,0 +1,72 @@
+<app-card [border]="true"
+          [padding]="false"
+          [cardBodyClass]="'p-0'">
+  <div class="f-m-light mt-1" headerNoTitle>
+    <div class="row">
+      <div class="col-12 m-b-10"><app-filter-financial-services></app-filter-financial-services></div>
+      <div class="col-12">
+        <div class="pull-right">
+          <button (click)="new()" class="btn btn-primary">
+            <i class="fa fa-plus"></i>&nbsp;Novo Registro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive custom-scrollbar">
+    <table class="table border-bottom-table">
+      <thead>
+      <tr class="border-bottom-primary">
+        <th scope="col">Nome</th>
+        <th scope="col">Descrição</th>
+        <th scope="col">Preço</th>
+        <th scope="col">Situação</th>
+        <th scope="col">Paróquia</th>
+        <th scope="col">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.id) {
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.description ?? '-' }}</td>
+            <td>{{ row.price | currency:'BRL' }}</td>
+            <td>
+              <span class="badge" [ngClass]="row.active ? 'bg-light-success txt-success' : 'bg-light-secondary txt-secondary'">
+                {{ row.active ? 'Ativo' : 'Inativo' }}
+              </span>
+            </td>
+            <td>{{ row.company?.name ?? '-' }}</td>
+            <td>
+              <button type="button" (click)="edit(row.id)" class="btn btn-primary btn-sm me-1">Editar</button>
+              <button type="button" (click)="remove(row.id)" class="btn btn-danger btn-sm">Remover</button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading) {
+            <tr>
+              <td colspan="6" class="text-center">Nenhum serviço financeiro encontrado</td>
+            </tr>
+          }
+        }
+        @if (loading) {
+          <tr>
+            <td colspan="6" class="text-center">Carregando...</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex justify-content-end p-10">
+    <ngb-pagination
+      [collectionSize]="meta.totalItems"
+      [page]="page"
+      [pageSize]="meta.itemsPerPage"
+      [maxSize]="5"
+      [rotate]="true"
+      [ellipses]="false"
+      (pageChange)="changePage($event)"
+    ></ngb-pagination>
+  </div>
+</app-card>
+<app-modal-financial-services #modal (onSave)="onSaved()"></app-modal-financial-services>

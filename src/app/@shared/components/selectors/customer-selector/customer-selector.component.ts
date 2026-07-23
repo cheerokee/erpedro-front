@@ -29,6 +29,7 @@ import { CustomerModel } from '../../../../@core/modules/general/entities/custom
 export class CustomerSelectorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() companyId: string | null = null;
   @Input() placeholder: string = 'Selecione um paroquiano';
+  @Input() disabled: boolean = false;
   @Output() selected = new EventEmitter<CustomerModel.Entity | null>();
 
   data: Select2Data = [];
@@ -100,12 +101,14 @@ export class CustomerSelectorComponent implements OnInit, OnChanges, OnDestroy {
         next: (result) => {
           if (!result.data) return;
 
+          const entity = CustomerModel.Entity.toEntity(result.data);
+
           this.setCustomers([
-            result.data,
+            entity,
             ...this.customers.filter((customer) => customer.id !== result.data.id),
           ]);
           this.value = result.data.id;
-          this.selected.emit(result.data);
+          this.selected.emit(entity);
         },
       });
   }

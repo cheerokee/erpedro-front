@@ -1,13 +1,13 @@
 <section [formGroup]="form">
   <div class="row">
     <div class="form-group col-md-6 m-b-10">
-      <label>Empresa <span class="text-danger">*</span></label>
+      <label>Paróquia <span class="text-danger">*</span></label>
       <app-company-selector
         #companySelector
         (selected)="onCompanySelected($event)"
       ></app-company-selector>
       @if (form.get('company_id').touched && !form.get('company_id').value) {
-        <div class="text text-danger mt-1">Empresa é obrigatória</div>
+        <div class="text text-danger mt-1">Paróquia é obrigatória</div>
       }
     </div>
   </div>

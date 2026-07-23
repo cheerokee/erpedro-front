@@ -107,12 +107,14 @@ export class UserSelectorComponent implements OnInit, OnChanges, OnDestroy {
         next: (result) => {
           if (!result.data) return;
 
+          const entity = UserModel.Entity.toEntity(result.data);
+
           this.setUsers([
-            result.data,
+            entity,
             ...this.users.filter((user) => user.id !== result.data.id),
           ]);
           this.value = result.data.id;
-          this.selected.emit(result.data);
+          this.selected.emit(entity);
         },
       });
   }

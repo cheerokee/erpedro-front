@@ -119,12 +119,14 @@ export class AddressSelectorComponent implements OnInit, OnChanges, OnDestroy {
         next: (result) => {
           if (!result.data) return;
 
+          const entity = AddressModel.Entity.toEntity(result.data);
+
           this.setAddresses([
-            result.data,
+            entity,
             ...this.addresses.filter((address) => address.id !== result.data.id),
           ]);
           this.value = result.data.id;
-          this.selected.emit(result.data);
+          this.selected.emit(entity);
         },
       });
   }

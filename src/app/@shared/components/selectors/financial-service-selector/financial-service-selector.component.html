@@ -1,0 +1,14 @@
+<div class="input-group">
+  <select2
+    [data]="data"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="!companyId"
+    [minCharForSearch]="0"
+    [noResultMessage]="isLoading ? 'Buscando...' : 'Nenhum serviço encontrado'"
+    (update)="onUpdate($event)"
+  ></select2>
+  <button type="button" class="btn btn-outline-secondary" title="Limpar" (click)="clear()">
+    <i class="fa-solid fa-eraser"></i>
+  </button>
+</div>
