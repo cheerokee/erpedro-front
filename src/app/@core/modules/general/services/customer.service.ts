@@ -12,6 +12,12 @@ export interface CustomerListItem extends CustomerModel.JsonProps {
   company?: { id: string; name: string };
 }
 
+export interface CustomerAnyCompanyItem {
+  id: string;
+  name: string;
+  company?: { id: string; name: string };
+}
+
 export interface CustomerExportAddress {
   is_main: boolean;
   street: string;
@@ -262,6 +268,25 @@ export class CustomerService extends BaseCrudHttp<
           return result;
         }),
       );
+  }
+
+  /** Busca em qualquer paróquia (não só a `companyId` de `byLike`) — usada
+   * pelo seletor de padrinho/madrinha/testemunha, onde a pessoa raramente é
+   * paroquiana da mesma paróquia do sacramento. Backend expõe só nome +
+   * paróquia (ver AI_CONTEXT.md seção 11, exceção deliberada de multitenancy).
+   * Retorna o item cru (sem CustomerModel.Entity.toEntity()) — mesmo motivo
+   * de RoleService.list()/company-selector: a projeção não traz `created_at`,
+   * então toEntity() geraria um Invalid Date à toa. */
+  searchAnyCompany(
+    q: string = '',
+    take: number = 20,
+  ): Observable<ResultModel<CustomerAnyCompanyItem[]>> {
+    const params = new HttpParams().set('q', q).set('take', take);
+
+    return this.httpClient.get<ResultModel<CustomerAnyCompanyItem[]>>(
+      `${this.path}/v1/customers/search-any-company`,
+      { params },
+    );
   }
 
   selfRegister(data: {

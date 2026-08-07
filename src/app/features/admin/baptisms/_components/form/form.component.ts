@@ -10,7 +10,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable, take } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap, take } from 'rxjs';
 
 import { getAuthenticatedUser } from '../../../../../@core/utils/get-authenticated-user.helper';
 import { AuthenticatedUser } from '../../../../../@core/services/auth.service';
@@ -19,11 +19,16 @@ import { ResultModel } from '../../../../../@core/models/result.model';
 import { SharedModule } from '../../../../../@shared/shared.module';
 
 import { BaptismService } from '../../../../../@core/modules/parishioner/services/baptism.service';
+import { BaptismGodparentService } from '../../../../../@core/modules/parishioner/services/baptism-godparent.service';
 import { BaptismModel } from '../../../../../@core/modules/parishioner/entities/baptism.model';
 import { CompanySelectorComponent } from '../../../../../@shared/components/selectors/company-selector/company-selector.component';
 import { CompanyModel } from '../../../../../@core/modules/company/entities/company.model';
 import { CustomerSelectorComponent } from '../../../../../@shared/components/selectors/customer-selector/customer-selector.component';
 import { CustomerModel } from '../../../../../@core/modules/general/entities/customer.model';
+import {
+  BaptismGodparentRow,
+  GodparentsFormListComponent,
+} from '../godparents-form-list/godparents-form-list.component';
 
 export type FormDataBaptism = BaptismModel.JsonProps;
 
@@ -31,7 +36,12 @@ export type FormDataBaptism = BaptismModel.JsonProps;
   selector: 'app-form-baptisms',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
-  imports: [SharedModule, CustomerSelectorComponent, CompanySelectorComponent],
+  imports: [
+    SharedModule,
+    CustomerSelectorComponent,
+    CompanySelectorComponent,
+    GodparentsFormListComponent,
+  ],
 })
 export class FormComponent implements OnChanges, OnInit {
   form: FormGroup;
@@ -39,6 +49,7 @@ export class FormComponent implements OnChanges, OnInit {
   saving = false;
 
   companyId: string | null = null;
+  godparents: BaptismGodparentRow[] = [];
 
   @Input() id: string;
   @Output() onSave = new EventEmitter<void>();
@@ -47,9 +58,15 @@ export class FormComponent implements OnChanges, OnInit {
   @ViewChild('parishionerSelector')
   parishionerSelectorRef: CustomerSelectorComponent;
 
+  // ids dos padrinhos já existentes no backend no momento em que o form foi
+  // carregado — usado só pra diff no submit() (syncGodparents), mesmo padrão
+  // de originalRepresentations em features/admin/users (AI_CONTEXT §3.7).
+  private originalGodparentIds: string[] = [];
+
   constructor(
     private formBuilder: FormBuilder,
     private baptismService: BaptismService,
+    private baptismGodparentService: BaptismGodparentService,
     private alertService: AlertService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -88,6 +105,8 @@ export class FormComponent implements OnChanges, OnInit {
 
   default() {
     this.companyId = null;
+    this.godparents = [];
+    this.originalGodparentIds = [];
 
     this.form.setValue({
       id: null,
@@ -97,6 +116,10 @@ export class FormComponent implements OnChanges, OnInit {
       parishioner_id: null,
       company_id: null,
     });
+  }
+
+  onGodparentsChange(rows: BaptismGodparentRow[]) {
+    this.godparents = rows;
   }
 
   load() {
@@ -135,6 +158,8 @@ export class FormComponent implements OnChanges, OnInit {
           if (this.companyId) this.companySelectorRef?.autoset(this.companyId);
           if (parishionerId)
             this.parishionerSelectorRef?.autoset(parishionerId);
+
+          this.loadGodparents(otherData.id);
         }
       },
       error: () => {
@@ -146,6 +171,66 @@ export class FormComponent implements OnChanges, OnInit {
         });
       },
     });
+  }
+
+  /** Backend já traz `godparent.company` (ver front/@core/.../baptism-godparent.service.ts)
+   * — monta as linhas direto, sem chamada extra por padrinho. */
+  private loadGodparents(baptismId: string) {
+    this.baptismGodparentService
+      .listByBaptism(baptismId)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          const rows: BaptismGodparentRow[] = (result.data ?? []).map(
+            (item: any) => ({
+              id: item.id,
+              godparent_id: item.godparent_id ?? item.godparent?.id,
+              godparent_name: item.godparent?.name ?? '-',
+              company_name: item.godparent?.company?.name ?? '-',
+              course_date: item.course_date ?? undefined,
+              course_hours: item.course_hours ?? undefined,
+              course_place: item.course_place ?? undefined,
+            }),
+          );
+
+          this.godparents = rows;
+          this.originalGodparentIds = rows
+            .map((row) => row.id)
+            .filter((id): id is string => !!id);
+        },
+      });
+  }
+
+  /** Client-orchestrated, mesmo espírito de syncRepresentations em
+   * features/admin/users (AI_CONTEXT §7): sem endpoint de "definir todos os
+   * padrinhos de uma vez", cada linha nova vira um POST e cada padrinho
+   * removido vira um DELETE. Não é atômico, e não há UPDATE — editar curso
+   * de um padrinho já adicionado significa remover e readicionar (mesma
+   * simplificação de syncRepresentations, que também só cria/remove). */
+  private syncGodparents(
+    baptismId: string,
+    rows: BaptismGodparentRow[],
+  ): Observable<any> {
+    const currentIds = rows.map((row) => row.id).filter(Boolean);
+    const removedIds = this.originalGodparentIds.filter(
+      (id) => !currentIds.includes(id),
+    );
+    const toCreate = rows.filter((row) => !row.id);
+
+    const requests: Observable<any>[] = [
+      ...toCreate.map((row) =>
+        this.baptismGodparentService.create({
+          baptism_id: baptismId,
+          godparent_id: row.godparent_id,
+          course_date: row.course_date,
+          course_hours: row.course_hours,
+          course_place: row.course_place,
+        } as any),
+      ),
+      ...removedIds.map((id) => this.baptismGodparentService.delete(id)),
+    ];
+
+    return requests.length > 0 ? forkJoin(requests) : of(null);
   }
 
   submit() {
@@ -162,41 +247,52 @@ export class FormComponent implements OnChanges, OnInit {
     // resolvido) é o único jeito de informar em qual paróquia o batismo está
     // sendo registrado, já que tenantStamp não faz nada nesse caso.
 
-    let obs$: Observable<ResultModel<any>>;
+    const existingId = data.id;
+    delete data.id;
 
     this.saving = true;
 
-    if (data.id) {
-      const id = data.id;
-      delete data.id;
-      obs$ = this.baptismService.update(id, data);
-    } else {
-      delete data.id;
-      obs$ = this.baptismService.create(data);
-    }
+    const godparents = this.godparents;
+    const save$: Observable<ResultModel<any>> = existingId
+      ? this.baptismService.update(existingId, data)
+      : this.baptismService.create(data);
 
-    obs$.pipe(take(1)).subscribe({
-      next: () => {
-        this.saving = false;
-        this.alertService.alert({
-          title: 'Sucesso',
-          text: 'Registro salvo com sucesso',
-          icon: 'success',
-          timer: 3000,
-        });
-        this.default();
-        this.onSave.emit();
-      },
-      error: () => {
-        this.saving = false;
-        this.alertService.alert({
-          title: 'Ops, houve um erro!',
-          text: 'Não foi possível cadastrar ou atualizar o registro',
-          icon: 'error',
-          timer: 3000,
-        });
-      },
-    });
+    // O batismo precisa existir antes dos padrinhos (FK baptism_id) — na
+    // criação, o id só existe depois da resposta do create(); na edição, já
+    // é o existingId. Mesma ordem de syncRepresentations (só roda depois do
+    // userId existir), ver AI_CONTEXT §3.7 do front.
+    save$
+      .pipe(
+        switchMap((result) => {
+          const baptismId = existingId ?? (result.data as any)?.id;
+          return this.syncGodparents(baptismId, godparents).pipe(
+            map(() => result),
+          );
+        }),
+        take(1),
+      )
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.alertService.alert({
+            title: 'Sucesso',
+            text: 'Registro salvo com sucesso',
+            icon: 'success',
+            timer: 3000,
+          });
+          this.default();
+          this.onSave.emit();
+        },
+        error: () => {
+          this.saving = false;
+          this.alertService.alert({
+            title: 'Ops, houve um erro!',
+            text: 'Não foi possível cadastrar ou atualizar o registro',
+            icon: 'error',
+            timer: 3000,
+          });
+        },
+      });
   }
 
   onCompanySelected(entity: CompanyModel.Entity | null) {

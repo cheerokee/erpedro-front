@@ -40,4 +40,9 @@
       <input class="form-control" formControlName="observation" />
     </div>
   </div>
+  <hr />
+  <app-godparents-form-list
+    [data]="godparents"
+    (dataChange)="onGodparentsChange($event)"
+  ></app-godparents-form-list>
 </section>
