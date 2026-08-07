@@ -1,0 +1,31 @@
+<div class="form-group m-b-15">
+  <input
+    class="form-control"
+    placeholder="Filtrar perfis..."
+    [(ngModel)]="filterText"
+  />
+</div>
+@if (loading) {
+  <p class="text-center">Carregando perfis...</p>
+} @else {
+  <div class="row">
+    @for (role of filteredRoles; track role.id) {
+      <div class="col-md-6">
+        <div class="form-check m-b-10">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            [id]="'role-' + role.id"
+            [checked]="isSelected(role.id)"
+            (change)="toggle(role.id, $any($event.target).checked)"
+          />
+          <label class="form-check-label" [for]="'role-' + role.id">
+            {{ label(role) }}
+          </label>
+        </div>
+      </div>
+    } @empty {
+      <p class="text-center">Nenhum perfil encontrado</p>
+    }
+  </div>
+}

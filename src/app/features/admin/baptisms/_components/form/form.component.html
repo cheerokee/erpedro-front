@@ -1,0 +1,43 @@
+<section [formGroup]="form">
+  <div class="row">
+    <div class="form-group col-md-6 m-b-10">
+      <label>Paróquia <span class="text-danger">*</span></label>
+      <app-company-selector #companySelector
+                            [disabled]="!!form.get('id').value"
+                            (selected)="onCompanySelected($event)"></app-company-selector>
+      @if (!form.get('id').value && form.get('company_id').touched && !form.get('company_id').value) {
+        <div class="text text-danger mt-1">Paróquia é obrigatória</div>
+      }
+    </div>
+    <div class="form-group col-md-6 m-b-10">
+      <label>Paroquiano <span class="text-danger">*</span></label>
+      <app-customer-selector #parishionerSelector
+                             [companyId]="form.get('company_id').value"
+                             [disabled]="!!form.get('id').value"
+                             (selected)="onParishionerSelected($event)"></app-customer-selector>
+      @if (!form.get('id').value && form.get('parishioner_id').touched && !form.get('parishioner_id').value) {
+        <div class="text text-danger mt-1">Paroquiano é obrigatório</div>
+      }
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3 form-group">
+      <label>Local <span class="text-danger">*</span></label>
+      <input class="form-control" formControlName="baptism_place" />
+      @if (form.get('baptism_place').touched && !form.get('baptism_place').value) {
+        <div class="text text-danger mt-1">Local é obrigatório</div>
+      }
+    </div>
+    <div class="col-md-3 form-group">
+      <label>Data <span class="text-danger">*</span></label>
+      <input type="date" class="form-control" formControlName="baptism_date" />
+      @if (form.get('baptism_date').touched && !form.get('baptism_date').value) {
+        <div class="text text-danger mt-1">Data é obrigatória</div>
+      }
+    </div>
+    <div class="col-md-6 form-group">
+      <label>Observação</label>
+      <input class="form-control" formControlName="observation" />
+    </div>
+  </div>
+</section>

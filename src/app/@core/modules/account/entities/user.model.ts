@@ -63,5 +63,20 @@ export namespace UserModel {
     }
   }
 
+  // q: busca por nome OU email (OR, via FilterParam type:'orx' — ver
+  // UserService.buildFilterParams). company_id: filtra usuários que têm
+  // alguma role vinculada a essa company (não existe company_id no próprio
+  // User — ver AI_CONTEXT.md, decisão de não modelar "a empresa do usuário",
+  // já que um usuário pode ser colaborador/paroquiano em várias paróquias).
+  export class Filter {
+    q?: string;
+    role_id?: string;
+    company_id?: string;
+
+    constructor(props: Partial<Filter>) {
+      Object.assign(this, props);
+    }
+  }
+
   export class ResultList extends defaultResultList<Entity> {}
 }

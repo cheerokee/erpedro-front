@@ -1,0 +1,10 @@
+// O tema (_dropdown.scss) fixa `.dropdown-toggle { width: 100px }`, pensado
+// pro dropdown compacto de "card-dropdown-button" — não cabe o texto
+// "Exportar Excel"/"Exportando...", então o botão de exportação sobrescreve
+// pra se ajustar ao conteúdo.
+.export-dropdown .dropdown-toggle {
+  width: auto;
+  // espaço reservado pra seta (::after, absolute, right: 10px, definida no
+  // tema) não sobrepor o texto quando o botão não tem mais 100px fixos.
+  padding-right: 28px;
+}
