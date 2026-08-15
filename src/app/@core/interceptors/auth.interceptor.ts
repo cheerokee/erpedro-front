@@ -5,7 +5,7 @@ import {
   HttpErrorResponse,
   HttpEvent,
 } from '@angular/common/http';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, EMPTY, Observable, switchMap, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 
 import { AuthService } from '../services/auth.service';
@@ -30,8 +30,11 @@ export const authInterceptor: HttpInterceptorFn = (
       if (error instanceof HttpErrorResponse && error.status === 401) {
         // Se o erro 401 vier da própria rota de refresh, não tente dar refresh de novo!
         if (req.url.includes('/auth/refresh-token')) {
-          authService.signOut();
-          return throwError(() => error);
+          authService.signOut('expired');
+          // EMPTY em vez de propagar o erro — senão o componente que fez a
+          // chamada original também mostra o próprio alerta genérico
+          // ("Não foi possível salvar"), sobrepondo o de sessão expirada.
+          return EMPTY;
         }
 
         return handle401Error(req, next, authService);
@@ -62,12 +65,11 @@ function handle401Error(
       // Se o refresh deu certo, repete a chamada que falhou com o novo token
       return next(addToken(request, result?.data?.access_token ?? null));
     }),
-    catchError((err) => {
-      // Se o refresh falhou, tchau! (Logout)
-      authService.signOut();
-      return throwError(async () => {
-        return err;
-      });
+    catchError(() => {
+      // Se o refresh falhou, tchau! (Logout) — EMPTY em vez de propagar,
+      // mesmo motivo do catchError acima.
+      authService.signOut('expired');
+      return EMPTY;
     }),
   );
 }
