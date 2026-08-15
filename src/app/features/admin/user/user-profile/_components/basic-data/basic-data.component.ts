@@ -59,15 +59,9 @@ export class BasicDataComponent implements OnInit {
             });
           }
         },
-        error: () => {
+        error: (err) => {
           this.isFetching = false;
-
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível carregar os dados do usuário.',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível carregar os dados do usuário.');
         },
       });
   }
@@ -93,15 +87,9 @@ export class BasicDataComponent implements OnInit {
             timer: 3000,
           });
         },
-        error: () => {
+        error: (err) => {
           this.isLoading = false;
-
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível atualizar os dados. Tente novamente.',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível atualizar os dados. Tente novamente.');
         },
       });
   }

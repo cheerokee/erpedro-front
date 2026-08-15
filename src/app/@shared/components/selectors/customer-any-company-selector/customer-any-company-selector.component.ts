@@ -185,14 +185,9 @@ export class CustomerAnyCompanySelectorComponent
 
           this.quickCreateModal.hide();
         },
-        error: () => {
+        error: (err) => {
           this.quickCreateSaving = false;
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível cadastrar o paroquiano',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível cadastrar o paroquiano');
         },
       });
   }

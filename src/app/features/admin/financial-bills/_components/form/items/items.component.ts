@@ -95,14 +95,9 @@ export class ItemsComponent implements OnInit {
             this.fetchPersisted();
             this.clearAddForm();
           },
-          error: () => {
+          error: (err) => {
             this.saving = false;
-            this.alertService.alert({
-              title: 'Ops, houve um erro!',
-              text: 'Não foi possível adicionar o item',
-              icon: 'error',
-              timer: 3000,
-            });
+            this.alertService.alertError(err, 'Não foi possível adicionar o item');
           },
         });
       return;
@@ -135,13 +130,8 @@ export class ItemsComponent implements OnInit {
         .pipe(take(1))
         .subscribe({
           next: () => this.fetchPersisted(),
-          error: () => {
-            this.alertService.alert({
-              title: 'Ops, houve um erro!',
-              text: 'Não foi possível remover o item',
-              icon: 'error',
-              timer: 3000,
-            });
+          error: (err) => {
+            this.alertService.alertError(err, 'Não foi possível remover o item');
           },
         });
       return;

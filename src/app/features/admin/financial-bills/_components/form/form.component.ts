@@ -204,8 +204,8 @@ export class FormComponent implements OnChanges, OnInit {
           this.formInstallments?.reload();
         }
       },
-      error: () => {
-        this.alertFail('Não foi possível carregar o registro');
+      error: (err) => {
+        this.alertService.alertError(err, 'Não foi possível carregar o registro');
       },
     });
   }
@@ -233,7 +233,7 @@ export class FormComponent implements OnChanges, OnInit {
         .pipe(take(1))
         .subscribe({
           next: () => this.saveSuccess(),
-          error: () => this.saveFail(),
+          error: (err) => this.saveFail(err),
         });
       return;
     }
@@ -302,17 +302,8 @@ export class FormComponent implements OnChanges, OnInit {
     this.onSave.emit();
   }
 
-  private saveFail() {
+  private saveFail(err?: any) {
     this.saving = false;
-    this.alertFail('Não foi possível cadastrar ou atualizar o registro');
-  }
-
-  private alertFail(text: string) {
-    this.alertService.alert({
-      title: 'Ops, houve um erro!',
-      text,
-      icon: 'error',
-      timer: 3000,
-    });
+    this.alertService.alertError(err, 'Não foi possível cadastrar ou atualizar o registro');
   }
 }

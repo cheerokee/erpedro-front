@@ -111,13 +111,8 @@ export class DataListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => this.fetch(),
-        error: () => {
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível remover o registro',
-            icon: 'error',
-            timer: 3000,
-          });
+        error: (err) => {
+          this.alertService.alertError(err, 'Não foi possível remover o registro');
         },
       });
   }

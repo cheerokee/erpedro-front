@@ -208,13 +208,8 @@ export class FormComponent implements OnChanges, OnInit {
           this.loadGodparents(otherData.id);
         }
       },
-      error: () => {
-        this.alertService.alert({
-          title: 'Ops, houve um erro!',
-          text: 'Não foi possível carregar o registro',
-          icon: 'error',
-          timer: 3000,
-        });
+      error: (err) => {
+        this.alertService.alertError(err, 'Não foi possível carregar o registro');
       },
     });
   }
@@ -346,14 +341,9 @@ export class FormComponent implements OnChanges, OnInit {
           this.default();
           this.onSave.emit();
         },
-        error: () => {
+        error: (err) => {
           this.saving = false;
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível cadastrar ou atualizar o registro',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível cadastrar ou atualizar o registro');
         },
       });
   }
@@ -396,15 +386,35 @@ export class FormComponent implements OnChanges, OnInit {
           link.click();
           URL.revokeObjectURL(url);
         },
-        error: () => {
+        error: (err) => {
           this.downloadingCertificate = false;
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível gerar o certificado',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertBlobError(err, 'Não foi possível gerar o certificado');
         },
       });
+  }
+
+  // responseType: 'blob' (certificate()) faz o Angular tratar o corpo do
+  // erro também como Blob, não JSON — err.error.message (que
+  // AlertService.alertError lê direto) vem undefined nesse caso. Decodifica
+  // manualmente antes de mostrar o alerta.
+  private async alertBlobError(err: any, fallbackText: string) {
+    let message = fallbackText;
+
+    if (err?.error instanceof Blob) {
+      try {
+        message = JSON.parse(await err.error.text())?.message ?? fallbackText;
+      } catch {
+        // corpo do erro não era JSON (ex.: falha de rede) — mantém o fallback
+      }
+    } else {
+      message = err?.error?.message ?? fallbackText;
+    }
+
+    this.alertService.alert({
+      title: 'Ops, houve um erro!',
+      text: message,
+      icon: 'error',
+      timer: 3000,
+    });
   }
 }

@@ -151,13 +151,8 @@ export class FormComponent implements OnChanges, OnInit {
           this.formBasic?.autoset(this.form.get('company_id').value);
         }
       },
-      error: () => {
-        this.alertService.alert({
-          title: 'Ops, houve um erro!',
-          text: 'Não foi possível carregar o registro',
-          icon: 'error',
-          timer: 3000,
-        });
+      error: (err) => {
+        this.alertService.alertError(err, 'Não foi possível carregar o registro');
       },
     });
   }
@@ -195,14 +190,9 @@ export class FormComponent implements OnChanges, OnInit {
         this.default();
         this.onSave.emit();
       },
-      error: () => {
+      error: (err) => {
         this.saving = false;
-        this.alertService.alert({
-          title: 'Ops, houve um erro!',
-          text: 'Não foi possível cadastrar ou atualizar o registro',
-          icon: 'error',
-          timer: 3000,
-        });
+        this.alertService.alertError(err, 'Não foi possível cadastrar ou atualizar o registro');
       },
     });
   }
