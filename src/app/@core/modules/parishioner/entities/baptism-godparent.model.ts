@@ -27,8 +27,12 @@ export namespace BaptismGodparentModel {
     baptism: BaptismModel.Entity;
     baptism_id: string;
 
-    godparent: CustomerModel.Entity;
-    godparent_id: string;
+    // Modelo híbrido — OU godparent/godparent_id (Customer já cadastrado) OU
+    // godparent_name/godparent_origin_parish (pessoa externa, texto livre).
+    godparent?: CustomerModel.Entity;
+    godparent_id?: string;
+    godparent_name?: string;
+    godparent_origin_parish?: string;
 
     constructor(props: Omit<Entity, 'toModel' | 'toEntity'>) {
       super(props);

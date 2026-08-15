@@ -158,6 +158,8 @@ export class FormComponent implements OnChanges, OnInit {
   }
 
   default() {
+    this.active = 1;
+
     this.form.setValue({
       id: null,
       name: null,
@@ -168,6 +170,10 @@ export class FormComponent implements OnChanges, OnInit {
     });
     this.originalRepresentations = [];
     this.setPasswordRequired(true);
+
+    this.formBasic?.autoset();
+    this.form.markAsUntouched();
+    this.form.markAsPristine();
   }
 
   load() {

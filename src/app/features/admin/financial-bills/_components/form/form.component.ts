@@ -156,6 +156,8 @@ export class FormComponent implements OnChanges, OnInit {
   }
 
   default() {
+    this.active = 1;
+
     this.form.setValue({
       id: null,
       release_date: null,
@@ -166,6 +168,14 @@ export class FormComponent implements OnChanges, OnInit {
       items: [],
       installments: [],
     });
+
+    // Seletores/listas das abas filhas mantêm estado próprio — setValue()
+    // acima não limpa a exibição sozinho (ver AI_CONTEXT.md).
+    this.formBasic?.autoset();
+    this.formItems?.reload();
+    this.formInstallments?.reload();
+    this.form.markAsUntouched();
+    this.form.markAsPristine();
   }
 
   load() {

@@ -4,18 +4,20 @@ import { FinancialBillModel } from '../../financial/entities/financial-bill.mode
 import { ResultList as defaultResultList } from '../../../base/result-list';
 import { CustomerModel } from '../../general/entities/customer.model';
 import { CompanyModel } from '../../company/entities/company.model';
+import { EmployeeModel } from '../../general/entities/employee.model';
 import { BaptismGodparentModel } from './baptism-godparent.model';
 import { EntityBase } from '../../../base/entity.base';
 
 export namespace BaptismModel {
   export type JsonProps = Omit<
     Entity,
-    'company' | 'parishioner' | 'bill' | 'godparents' | 'toEntity'
+    'company' | 'parishioner' | 'bill' | 'godparents' | 'celebrant' | 'toEntity'
   > & {
     company?: CompanyModel.JsonProps;
     parishioner?: CustomerModel.JsonProps;
     bill?: FinancialBillModel.JsonProps;
     godparents?: BaptismGodparentModel.JsonProps[];
+    celebrant?: EmployeeModel.JsonProps;
   };
 
   export class Entity extends EntityBase<Entity> {
@@ -28,6 +30,10 @@ export namespace BaptismModel {
     baptism_date: string;
     observation?: string;
 
+    registry_book?: string;
+    registry_page?: string;
+    registry_term?: string;
+
     company: CompanyModel.Entity;
     company_id: string;
 
@@ -36,6 +42,9 @@ export namespace BaptismModel {
 
     bill?: FinancialBillModel.Entity;
     bill_id?: string;
+
+    celebrant?: EmployeeModel.Entity;
+    celebrant_id?: string;
 
     godparents?: BaptismGodparentModel.Entity[];
 
@@ -65,15 +74,22 @@ export namespace BaptismModel {
       if (!props.bill_id && props.bill)
         this.bill_id =
           typeof props.bill === 'object' ? props.bill.id : props.bill;
+
+      if (!props.celebrant_id && props.celebrant)
+        this.celebrant_id =
+          typeof props.celebrant === 'object'
+            ? props.celebrant.id
+            : props.celebrant;
     }
 
     override toModel(): JsonProps {
       const companyEntity = this.company;
       const parishionerEntity = this.parishioner;
       const billEntity = this.bill;
+      const celebrantEntity = this.celebrant;
       const godParentEntities = this.godparents;
 
-      let { company, parishioner, bill, godparents, ...props } =
+      let { company, parishioner, bill, celebrant, godparents, ...props } =
         super.toModel() as any;
 
       return {
@@ -81,6 +97,7 @@ export namespace BaptismModel {
         ...(companyEntity && { company: companyEntity.toModel() }),
         ...(parishionerEntity && { parishioner: parishionerEntity.toModel() }),
         ...(billEntity && { bill: billEntity.toModel() }),
+        ...(celebrantEntity && { celebrant: celebrantEntity.toModel() }),
         ...(godParentEntities?.length > 0 && {
           godparents: godParentEntities.map((entity) => entity.toModel()),
         }),
@@ -88,7 +105,7 @@ export namespace BaptismModel {
     }
 
     static toEntity(data: JsonProps) {
-      const { bill, parishioner, company, godparents, ...props } = data;
+      const { bill, parishioner, company, celebrant, godparents, ...props } = data;
       return new Entity({
         ...props,
         created_at: new Date(props.created_at),
@@ -98,6 +115,9 @@ export namespace BaptismModel {
         ...(bill && { bill: FinancialBillModel.Entity.toEntity(bill) }),
         ...(parishioner && {
           parishioner: CustomerModel.Entity.toEntity(parishioner),
+        }),
+        ...(celebrant && {
+          celebrant: EmployeeModel.Entity.toEntity(celebrant),
         }),
         ...(godparents?.length > 0 && {
           godparents: godparents.map((item) => {

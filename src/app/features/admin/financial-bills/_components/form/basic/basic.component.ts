@@ -74,8 +74,10 @@ export class BasicFormFinancialBillComponent implements OnInit, AfterViewInit {
 
     this.companyId = companyId;
     if (companyId) this.companySelectorRef?.autoset(companyId);
+    else this.companySelectorRef?.clear();
     this.cdr.detectChanges();
 
     if (customerId) this.customerSelectorRef?.autoset(customerId);
+    else this.customerSelectorRef?.clear();
   }
 }

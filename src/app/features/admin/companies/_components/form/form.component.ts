@@ -116,11 +116,19 @@ export class FormComponent implements OnChanges, OnInit {
   }
 
   default() {
+    this.active = 1;
+
     this.form.setValue({
       id: null,
       name: null,
       owner_id: null,
     });
+
+    // O userSelector mantém rótulo exibido em estado próprio — setValue()
+    // acima não limpa a exibição sozinho (ver AI_CONTEXT.md).
+    this.formBasic?.autoset(null);
+    this.form.markAsUntouched();
+    this.form.markAsPristine();
   }
 
   load() {

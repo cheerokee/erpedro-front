@@ -90,6 +90,17 @@ export class BaptismService extends BaseCrudHttp<
       .pipe(map((result) => result.data.baptismList));
   }
 
+  // Endpoint REST (não GraphQL) que devolve o PDF direto no corpo da
+  // resposta, gerado na hora pelo backend a cada chamada — sem cache/histórico
+  // de emissão. responseType: 'blob' faz o Angular devolver o binário puro em
+  // vez de tentar fazer JSON.parse; o AuthInterceptor injeta o Bearer token
+  // normalmente, independente do responseType.
+  certificate(id: string): Observable<Blob> {
+    return this.httpClient.get(`${this.path}/${this.apiRoute}/${id}/certificate`, {
+      responseType: 'blob',
+    });
+  }
+
   private buildFilterParams(filter: BaptismModel.Filter) {
     // alias "b" é o alias da tabela principal em baptismList
     // (ParishionerGraphqlService.baptismList, backend) — baptism_place,

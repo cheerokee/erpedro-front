@@ -10,7 +10,7 @@
     </h2>
     <div class="accordion-collapse collapse show" ngbAccordionCollapse>
       <div [formGroup]="form" class="accordion-body" ngbAccordionBody >
-        <div class="row">
+        <div class="row m-b-20">
           <div class="col-md-6 form-group">
             <label>Paróquia</label>
             <app-company-selector #companySelector
@@ -23,7 +23,7 @@
                                    (selected)="onParishionerSelected($event)"></app-customer-selector>
           </div>
         </div>
-        <div class="row">
+        <div class="row m-b-20">
           <div class="col-md-4 form-group">
             <label>Data</label>
             <input type="date" class="form-control" formControlName="baptism_date" />

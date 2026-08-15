@@ -31,8 +31,10 @@ export class BasicFormFinancialServiceComponent implements OnInit, AfterViewInit
     this.form.get('company_id').markAsTouched();
   }
 
-  /** Preseleciona a paróquia em telas de edição — chamado pelo componente pai. */
+  /** Preseleciona a paróquia em telas de edição, ou limpa a exibição quando
+   * o form pai é resetado (criação cancelada) — chamado pelo componente pai. */
   autoset(companyId: string | null) {
     if (companyId) this.companySelectorRef?.autoset(companyId);
+    else this.companySelectorRef?.clear();
   }
 }
