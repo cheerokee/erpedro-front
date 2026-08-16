@@ -31,7 +31,11 @@ import {
   BaptismGodparentRow,
   GodparentsFormListComponent,
 } from '../godparents-form-list/godparents-form-list.component';
-import { BaptismAttachmentsFormListComponent } from '../baptism-attachments-form-list/baptism-attachments-form-list.component';
+import {
+  BaptismAttachmentRow,
+  BaptismAttachmentsFormListComponent,
+} from '../baptism-attachments-form-list/baptism-attachments-form-list.component';
+import { BaptismAttachmentService } from '../../../../../@core/modules/parishioner/services/baptism-attachment.service';
 
 export type FormDataBaptism = BaptismModel.JsonProps;
 
@@ -56,6 +60,7 @@ export class FormComponent implements OnChanges, OnInit {
 
   companyId: string | null = null;
   godparents: BaptismGodparentRow[] = [];
+  attachments: BaptismAttachmentRow[] = [];
 
   @Input() id: string;
   @Output() onSave = new EventEmitter<void>();
@@ -71,10 +76,16 @@ export class FormComponent implements OnChanges, OnInit {
   // de originalRepresentations em features/admin/users (AI_CONTEXT §3.7).
   private originalGodparentIds: string[] = [];
 
+  // mesma ideia, mas pra documentos precisa também do título original (pra
+  // detectar edição de título de uma linha existente — ver syncAttachments).
+  private originalAttachmentIds: string[] = [];
+  private originalAttachmentTitleById: Record<string, string> = {};
+
   constructor(
     private formBuilder: FormBuilder,
     private baptismService: BaptismService,
     private baptismGodparentService: BaptismGodparentService,
+    private baptismAttachmentService: BaptismAttachmentService,
     private alertService: AlertService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -119,6 +130,9 @@ export class FormComponent implements OnChanges, OnInit {
     this.companyId = null;
     this.godparents = [];
     this.originalGodparentIds = [];
+    this.attachments = [];
+    this.originalAttachmentIds = [];
+    this.originalAttachmentTitleById = {};
 
     this.form.setValue({
       id: null,
@@ -161,6 +175,10 @@ export class FormComponent implements OnChanges, OnInit {
 
   onGodparentsChange(rows: BaptismGodparentRow[]) {
     this.godparents = rows;
+  }
+
+  onAttachmentsChange(rows: BaptismAttachmentRow[]) {
+    this.attachments = rows;
   }
 
   load() {
@@ -208,6 +226,7 @@ export class FormComponent implements OnChanges, OnInit {
           if (celebrantId) this.celebrantSelectorRef?.autoset(celebrantId);
 
           this.loadGodparents(otherData.id);
+          this.loadAttachments(otherData.id);
         }
       },
       error: (err) => {
@@ -252,6 +271,64 @@ export class FormComponent implements OnChanges, OnInit {
             .filter((id): id is string => !!id);
         },
       });
+  }
+
+  private loadAttachments(baptismId: string) {
+    this.baptismAttachmentService
+      .listByBaptism(baptismId)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          const rows: BaptismAttachmentRow[] = (result.data ?? []).map((item) => ({
+            id: item.id,
+            title: item.attachment.title,
+            fileName: item.attachment.s3_file.originalName,
+            mimetype: item.attachment.s3_file.mimetype,
+            s3FileId: item.attachment.s3_file.id,
+          }));
+
+          this.attachments = rows;
+          this.originalAttachmentIds = rows
+            .map((row) => row.id)
+            .filter((id): id is string => !!id);
+          this.originalAttachmentTitleById = Object.fromEntries(
+            rows.filter((row) => row.id).map((row) => [row.id, row.title]),
+          );
+        },
+      });
+  }
+
+  /** Client-orchestrated, mesmo espírito de syncGodparents/syncRepresentations
+   * — cada linha nova (com `file`, sem `id`) vira um upload real
+   * (multipart), cada removida vira um DELETE, e uma linha existente cujo
+   * título mudou vira um PUT (só título é editável, ver
+   * BaptismAttachmentsFormListComponent). Não é atômico: se um upload falhar
+   * no meio, os anteriores já foram feitos — mesma simplificação aceita em
+   * syncGodparents. */
+  private syncAttachments(
+    baptismId: string,
+    rows: BaptismAttachmentRow[],
+  ): Observable<any> {
+    const currentIds = rows.map((row) => row.id).filter(Boolean);
+    const removedIds = this.originalAttachmentIds.filter(
+      (id) => !currentIds.includes(id),
+    );
+    const toCreate = rows.filter((row) => !row.id && row.file);
+    const toUpdate = rows.filter(
+      (row) => row.id && row.title !== this.originalAttachmentTitleById[row.id],
+    );
+
+    const requests: Observable<any>[] = [
+      ...toCreate.map((row) =>
+        this.baptismAttachmentService.create(baptismId, row.title, row.file as File),
+      ),
+      ...toUpdate.map((row) =>
+        this.baptismAttachmentService.updateTitle(row.id as string, row.title),
+      ),
+      ...removedIds.map((id) => this.baptismAttachmentService.delete(id)),
+    ];
+
+    return requests.length > 0 ? forkJoin(requests) : of(null);
   }
 
   /** Client-orchestrated, mesmo espírito de syncRepresentations em
@@ -313,21 +390,24 @@ export class FormComponent implements OnChanges, OnInit {
     this.saving = true;
 
     const godparents = this.godparents;
+    const attachments = this.attachments;
     const save$: Observable<ResultModel<any>> = existingId
       ? this.baptismService.update(existingId, data)
       : this.baptismService.create(data);
 
-    // O batismo precisa existir antes dos padrinhos (FK baptism_id) — na
-    // criação, o id só existe depois da resposta do create(); na edição, já
-    // é o existingId. Mesma ordem de syncRepresentations (só roda depois do
-    // userId existir), ver AI_CONTEXT §3.7 do front.
+    // O batismo precisa existir antes dos padrinhos/documentos (FK
+    // baptism_id) — na criação, o id só existe depois da resposta do
+    // create(); na edição, já é o existingId. Mesma ordem de
+    // syncRepresentations (só roda depois do userId existir), ver
+    // AI_CONTEXT §3.7 do front.
     save$
       .pipe(
         switchMap((result) => {
           const baptismId = existingId ?? (result.data as any)?.id;
-          return this.syncGodparents(baptismId, godparents).pipe(
-            map(() => result),
-          );
+          return forkJoin([
+            this.syncGodparents(baptismId, godparents),
+            this.syncAttachments(baptismId, attachments),
+          ]).pipe(map(() => result));
         }),
         take(1),
       )

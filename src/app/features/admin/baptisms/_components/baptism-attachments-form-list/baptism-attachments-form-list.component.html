@@ -10,37 +10,38 @@
     </tr>
     </thead>
     <tbody>
-      @for (item of items; track item.id) {
+      @for (row of data; track (row.id ?? row.fileName) + '-' + $index; let i = $index) {
         <tr>
           <td>
-            @if (editingId === item.id) {
+            @if (editingIndex === i) {
               <input class="form-control form-control-sm" [(ngModel)]="editTitle" />
             } @else {
-              {{ item.attachment.title }}
+              {{ row.title }}
+              @if (!row.id) {
+                <span class="badge bg-warning text-dark">Novo — salvo ao clicar em Salvar</span>
+              }
             }
           </td>
           <td>
-            <i class="fa" [class]="fileIcon(item.attachment.s3_file.mimetype)"></i>
-            &nbsp;{{ item.attachment.s3_file.originalName ?? '-' }}
+            <i class="fa" [class]="fileIcon(row.mimetype)"></i>
+            &nbsp;{{ row.fileName ?? '-' }}
           </td>
           <td class="text-nowrap">
-            @if (editingId === item.id) {
-              <button type="button" class="btn btn-success btn-sm" title="Salvar" (click)="saveEdit(item)"><i class="fa fa-check"></i></button>
+            @if (editingIndex === i) {
+              <button type="button" class="btn btn-success btn-sm" title="Salvar" (click)="saveEdit(i)"><i class="fa fa-check"></i></button>
               <button type="button" class="btn btn-light btn-sm" title="Cancelar" (click)="cancelEdit()"><i class="fa fa-times"></i></button>
             } @else {
-              <button type="button" class="btn btn-outline-secondary btn-sm" title="Baixar" (click)="download(item)"><i class="fa fa-download"></i></button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" title="Editar título" (click)="startEdit(item)"><i class="fa fa-pen"></i></button>
-              <button type="button" class="btn btn-outline-danger btn-sm" title="Remover" (click)="remove(item)"><i class="fa fa-trash"></i></button>
+              @if (row.s3FileId) {
+                <button type="button" class="btn btn-outline-secondary btn-sm" title="Baixar" (click)="download(row)"><i class="fa fa-download"></i></button>
+              }
+              <button type="button" class="btn btn-outline-secondary btn-sm" title="Editar título" (click)="startEdit(i)"><i class="fa fa-pen"></i></button>
+              <button type="button" class="btn btn-outline-danger btn-sm" title="Remover" (click)="remove(i)"><i class="fa fa-trash"></i></button>
             }
           </td>
         </tr>
       } @empty {
         <tr>
-          @if (loading) {
-            <td colspan="3" class="text-center">Carregando...</td>
-          } @else {
-            <td colspan="3" class="text-center">Nenhum documento anexado</td>
-          }
+          <td colspan="3" class="text-center">Nenhum documento anexado</td>
         </tr>
       }
     </tbody>
@@ -74,8 +75,8 @@
   <modal-footer>
     <div class="d-flex justify-content-end">
       <button type="button" class="btn btn-light me-2" (click)="addModal.hide()">Cancelar</button>
-      <button type="button" class="btn btn-primary" [disabled]="!canUpload || uploading" (click)="upload()">
-        {{ uploading ? 'Enviando...' : 'Anexar' }}
+      <button type="button" class="btn btn-primary" [disabled]="!canUpload" (click)="add()">
+        Adicionar à lista
       </button>
     </div>
   </modal-footer>

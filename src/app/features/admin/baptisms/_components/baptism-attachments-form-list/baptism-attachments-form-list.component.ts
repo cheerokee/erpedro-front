@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 
@@ -10,37 +10,54 @@ import {
   ModalFooter,
   ModalHeader,
 } from '../../../../../@shared/components/modal/modal.component';
-import {
-  BaptismAttachmentItem,
-  BaptismAttachmentService,
-} from '../../../../../@core/modules/parishioner/services/baptism-attachment.service';
+import { BaptismAttachmentService } from '../../../../../@core/modules/parishioner/services/baptism-attachment.service';
 
 const ALLOWED_MIMETYPES = ['image/png', 'image/jpeg', 'application/pdf'];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
-// Diferente de GodparentsFormListComponent (fica em memória, o pai sincroniza
-// no submit()): aqui não dá pra "ficar em memória" — upload é uma chamada
-// HTTP real com um arquivo binário, e precisa de um baptism_id que já
-// exista no backend. Por isso este componente busca e sincroniza sozinho
-// (chamada imediata por ação), em vez de emitir um array pro pai.
+// Vive em memória (sem persistir sozinho), mesmo contrato de
+// GodparentsFormListComponent — quem usa (FormComponent) decide quando
+// sincronizar com o backend, no submit(), comparando com os documentos
+// originais carregados no load(). Isso permite anexar já na criação do
+// batismo (antes de existir baptism_id), não só na edição.
+//
+// "Editar" um documento já existente (com id) NÃO pode ser remover +
+// readicionar (diferente de padrinho): o arquivo não fica em memória depois
+// de enviado, só existe no S3 — sem o arquivo original em mãos não dá pra
+// recriar o Attachment. Por isso só o título é editável pra linhas
+// existentes, e isso também fica em memória até o Salvar (FormComponent
+// detecta a mudança de título e chama updateTitle() só nesse momento).
+export interface BaptismAttachmentRow {
+  // presente só quando a linha já existe no backend (carregada na edição) —
+  // ausente numa linha recém-adicionada (ainda não enviada).
+  id?: string;
+  title: string;
+  // presente só numa linha nova, ainda não enviada — é o que
+  // FormComponent.syncAttachments manda no upload real.
+  file?: File;
+  // nome/tipo do arquivo pra exibir na tabela — de uma linha nova vem do
+  // próprio File, de uma existente vem do S3FileEntity já carregado.
+  fileName?: string;
+  mimetype?: string;
+  // só presente numa linha existente — usado só pra "Baixar".
+  s3FileId?: string;
+}
+
 @Component({
   selector: 'app-baptism-attachments-form-list',
   templateUrl: './baptism-attachments-form-list.component.html',
   styleUrls: ['./baptism-attachments-form-list.component.scss'],
   imports: [SharedModule, FormsModule, ModalComponent, ModalHeader, ModalBody, ModalFooter],
 })
-export class BaptismAttachmentsFormListComponent implements OnChanges {
-  @Input() baptismId: string | null = null;
-
-  items: BaptismAttachmentItem[] = [];
-  loading = false;
-  uploading = false;
+export class BaptismAttachmentsFormListComponent {
+  @Input() data: BaptismAttachmentRow[] = [];
+  @Output() dataChange = new EventEmitter<BaptismAttachmentRow[]>();
 
   title: string | null = null;
   selectedFile: File | null = null;
   selectedFileError: string | null = null;
 
-  editingId: string | null = null;
+  editingIndex: number | null = null;
   editTitle: string | null = null;
 
   @ViewChild('addModal') addModal: ModalComponent;
@@ -50,31 +67,8 @@ export class BaptismAttachmentsFormListComponent implements OnChanges {
     private readonly alertService: AlertService,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['baptismId'] && this.baptismId) {
-      this.fetch();
-    }
-  }
-
   get canUpload(): boolean {
     return !!this.title?.trim() && !!this.selectedFile && !this.selectedFileError;
-  }
-
-  fetch() {
-    this.loading = true;
-    this.service
-      .listByBaptism(this.baptismId as string)
-      .pipe(take(1))
-      .subscribe({
-        next: (result) => {
-          this.loading = false;
-          this.items = result.data ?? [];
-        },
-        error: (err) => {
-          this.loading = false;
-          this.alertService.alertError(err, 'Não foi possível carregar os documentos');
-        },
-      });
   }
 
   openAddModal() {
@@ -106,57 +100,50 @@ export class BaptismAttachmentsFormListComponent implements OnChanges {
     this.selectedFile = file;
   }
 
-  upload() {
+  // Só adiciona na lista em memória — o upload de verdade só acontece no
+  // submit() do form pai (FormComponent.syncAttachments), depois que o
+  // batismo (novo ou existente) já tem id garantido.
+  add() {
     if (!this.canUpload) return;
 
-    this.uploading = true;
-    this.service
-      .create(this.baptismId as string, this.title.trim(), this.selectedFile)
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          this.uploading = false;
-          this.addModal.hide();
-          this.clear();
-          this.fetch();
-        },
-        error: (err) => {
-          this.uploading = false;
-          this.alertService.alertError(err, 'Não foi possível anexar o documento');
-        },
-      });
+    const row: BaptismAttachmentRow = {
+      title: this.title.trim(),
+      file: this.selectedFile,
+      fileName: this.selectedFile.name,
+      mimetype: this.selectedFile.type,
+    };
+
+    this.dataChange.emit([...this.data, row]);
+    this.addModal.hide();
+    this.clear();
   }
 
-  startEdit(item: BaptismAttachmentItem) {
-    this.editingId = item.id;
-    this.editTitle = item.attachment.title;
+  startEdit(index: number) {
+    this.editingIndex = index;
+    this.editTitle = this.data[index].title;
   }
 
   cancelEdit() {
-    this.editingId = null;
+    this.editingIndex = null;
     this.editTitle = null;
   }
 
-  saveEdit(item: BaptismAttachmentItem) {
+  saveEdit(index: number) {
     if (!this.editTitle?.trim()) return;
 
-    this.service
-      .updateTitle(item.id, this.editTitle.trim())
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          this.editingId = null;
-          this.fetch();
-        },
-        error: (err) => {
-          this.alertService.alertError(err, 'Não foi possível atualizar o documento');
-        },
-      });
+    const next = [...this.data];
+    next[index] = { ...next[index], title: this.editTitle.trim() };
+    this.dataChange.emit(next);
+    this.editingIndex = null;
   }
 
-  download(item: BaptismAttachmentItem) {
+  // Só faz sentido pra linha já existente (s3FileId vem do backend) — uma
+  // linha nova ainda não tem nada pra baixar, o arquivo está só no browser.
+  download(row: BaptismAttachmentRow) {
+    if (!row.s3FileId) return;
+
     this.service
-      .getDownloadUrl(item.attachment.s3_file.id)
+      .getDownloadUrl(row.s3FileId)
       .pipe(take(1))
       .subscribe({
         next: (result) => {
@@ -168,7 +155,7 @@ export class BaptismAttachmentsFormListComponent implements OnChanges {
       });
   }
 
-  async remove(item: BaptismAttachmentItem) {
+  async remove(index: number) {
     const confirmation = await this.alertService.confirm({
       title: 'Remover documento?',
       text: 'Essa ação não poderá ser desfeita.',
@@ -176,18 +163,12 @@ export class BaptismAttachmentsFormListComponent implements OnChanges {
 
     if (!confirmation.isConfirmed) return;
 
-    this.service
-      .delete(item.id)
-      .pipe(take(1))
-      .subscribe({
-        next: () => this.fetch(),
-        error: (err) => {
-          this.alertService.alertError(err, 'Não foi possível remover o documento');
-        },
-      });
+    const next = [...this.data];
+    next.splice(index, 1);
+    this.dataChange.emit(next);
   }
 
-  fileIcon(mimetype: string): string {
+  fileIcon(mimetype?: string): string {
     return mimetype === 'application/pdf' ? 'fa-file-pdf-o' : 'fa-file-image-o';
   }
 
