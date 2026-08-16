@@ -37,6 +37,15 @@ export const authInterceptor: HttpInterceptorFn = (
           return EMPTY;
         }
 
+        // Demais rotas públicas de auth (sign-in, forgot/reset-password,
+        // confirm-email): um 401 aqui é credencial/token inválido, não
+        // sessão expirada — não tentar refresh nem deslogar, só repassar
+        // o erro pra quem chamou (ex: AuthObserver.error() mostrar
+        // "Usuário ou senha incorreto").
+        if (req.url.includes('/auth/')) {
+          return throwError(() => error);
+        }
+
         return handle401Error(req, next, authService);
       }
 
