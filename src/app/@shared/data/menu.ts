@@ -50,6 +50,17 @@ export const menuItems: IMenu[] = [
       { path: '/admin/financial-bills', title: 'Faturas', type: 'link' },
     ],
   },
+  {
+    title: 'Assinatura',
+    icon: 'price',
+    type: 'sub',
+    active: false,
+    level: 1,
+    children: [
+      { path: '/admin/billing/plan', title: 'Plano', type: 'link' },
+      { path: '/admin/billing/invoices', title: 'Faturas da Assinatura', type: 'link' },
+    ],
+  },
 ];
 
 // Array
