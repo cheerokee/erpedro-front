@@ -31,6 +31,7 @@ import {
   BaptismGodparentRow,
   GodparentsFormListComponent,
 } from '../godparents-form-list/godparents-form-list.component';
+import { BaptismAttachmentsFormListComponent } from '../baptism-attachments-form-list/baptism-attachments-form-list.component';
 
 export type FormDataBaptism = BaptismModel.JsonProps;
 
@@ -44,6 +45,7 @@ export type FormDataBaptism = BaptismModel.JsonProps;
     CompanySelectorComponent,
     EmployeeSelectorComponent,
     GodparentsFormListComponent,
+    BaptismAttachmentsFormListComponent,
   ],
 })
 export class FormComponent implements OnChanges, OnInit {

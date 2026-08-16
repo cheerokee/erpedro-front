@@ -80,4 +80,10 @@
     [data]="godparents"
     (dataChange)="onGodparentsChange($event)"
   ></app-godparents-form-list>
+  @if (form.get('id').value) {
+    <hr />
+    <app-baptism-attachments-form-list
+      [baptismId]="form.get('id').value"
+    ></app-baptism-attachments-form-list>
+  }
 </section>
