@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 
@@ -61,6 +61,7 @@ export class BaptismAttachmentsFormListComponent {
   editTitle: string | null = null;
 
   @ViewChild('addModal') addModal: ModalComponent;
+  @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement>;
 
   constructor(
     private readonly service: BaptismAttachmentService,
@@ -176,5 +177,10 @@ export class BaptismAttachmentsFormListComponent {
     this.title = null;
     this.selectedFile = null;
     this.selectedFileError = null;
+    // input[type=file] mantém o nome do arquivo exibido mesmo depois do
+    // estado do componente ser limpo — precisa resetar o elemento nativo.
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 }

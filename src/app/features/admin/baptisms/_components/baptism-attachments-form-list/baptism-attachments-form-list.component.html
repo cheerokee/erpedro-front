@@ -63,7 +63,7 @@
     </div>
     <div class="form-group m-b-10">
       <label>Arquivo (PNG, JPG, JPEG ou PDF, até 10MB) <span class="text-danger">*</span></label>
-      <input type="file" class="form-control" accept=".png,.jpg,.jpeg,.pdf" (change)="onFileSelected($event)" />
+      <input #fileInput type="file" class="form-control" accept=".png,.jpg,.jpeg,.pdf" (change)="onFileSelected($event)" />
       @if (selectedFileError) {
         <div class="text text-danger mt-1">{{ selectedFileError }}</div>
       }

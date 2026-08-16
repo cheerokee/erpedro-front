@@ -376,6 +376,25 @@ export class FormComponent implements OnChanges, OnInit {
       return;
     }
 
+    const parishionerId = this.form.get('parishioner_id').value;
+    const hasSelfGodparent = this.godparents.some(
+      (row) => !row.is_external && row.godparent_id === parishionerId,
+    );
+    // Validado aqui, antes do POST do batismo — o backend também recusa isso
+    // (BaptismGodparentService.validate), mas só na criação do padrinho, que
+    // acontece DEPOIS do batismo já persistido (ver syncGodparents). Barrar
+    // no client evita criar um batismo "órfão" sem padrinho quando o usuário
+    // comete esse erro.
+    if (hasSelfGodparent) {
+      this.alertService.alert({
+        title: 'Ops, houve um erro!',
+        text: 'O padrinho/madrinha não pode ser a mesma pessoa que está sendo batizada',
+        icon: 'error',
+        timer: 4000,
+      });
+      return;
+    }
+
     const data: FormDataBaptism = { ...this.form.value };
     // company_id é enviado normalmente (CreateBaptismDto/UpdateBaptismDto
     // aceitam, igual Customer/Employee) — pra usuário comum (tenant
