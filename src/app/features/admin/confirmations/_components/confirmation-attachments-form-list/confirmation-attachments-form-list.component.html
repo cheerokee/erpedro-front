@@ -1,0 +1,83 @@
+<label class="f-w-600">Documentos anexados</label>
+
+<div class="table-responsive m-b-10">
+  <table class="table table-bordered table-striped border-bottom-table">
+    <thead>
+    <tr>
+      <th scope="col">Título</th>
+      <th scope="col">Arquivo</th>
+      <th scope="col">Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (row of data; track (row.id ?? row.fileName) + '-' + $index; let i = $index) {
+        <tr>
+          <td>
+            @if (editingIndex === i) {
+              <input class="form-control form-control-sm" [(ngModel)]="editTitle" />
+            } @else {
+              {{ row.title }}
+              @if (!row.id) {
+                <span class="badge bg-warning text-dark">Novo — salvo ao clicar em Salvar</span>
+              }
+            }
+          </td>
+          <td>
+            <i class="fa" [class]="fileIcon(row.mimetype)"></i>
+            &nbsp;{{ row.fileName ?? '-' }}
+          </td>
+          <td class="text-nowrap">
+            @if (editingIndex === i) {
+              <button type="button" class="btn btn-success btn-sm" title="Salvar" (click)="saveEdit(i)"><i class="fa fa-check"></i></button>
+              <button type="button" class="btn btn-light btn-sm" title="Cancelar" (click)="cancelEdit()"><i class="fa fa-times"></i></button>
+            } @else {
+              @if (row.s3FileId) {
+                <button type="button" class="btn btn-outline-secondary btn-sm" title="Baixar" (click)="download(row)"><i class="fa fa-download"></i></button>
+              }
+              <button type="button" class="btn btn-outline-secondary btn-sm" title="Editar título" (click)="startEdit(i)"><i class="fa fa-pen"></i></button>
+              <button type="button" class="btn btn-outline-danger btn-sm" title="Remover" (click)="remove(i)"><i class="fa fa-trash"></i></button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="3" class="text-center">Nenhum documento anexado</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<button type="button" class="btn btn-primary" (click)="openAddModal()">
+  <i class="fa fa-plus"></i>&nbsp;Anexar documento
+</button>
+
+<app-modal #addModal [size]="'lg'">
+  <modal-header>
+    <h4>Anexar documento</h4>
+  </modal-header>
+  <modal-body>
+    <div class="form-group m-b-10">
+      <label>Título <span class="text-danger">*</span></label>
+      <input class="form-control" [(ngModel)]="title" placeholder="Ex.: Certidão de Crisma — Paróquia de origem" />
+    </div>
+    <div class="form-group m-b-10">
+      <label>Arquivo (PNG, JPG, JPEG ou PDF, até 10MB) <span class="text-danger">*</span></label>
+      <input #fileInput type="file" class="form-control" accept=".png,.jpg,.jpeg,.pdf" (change)="onFileSelected($event)" />
+      @if (selectedFileError) {
+        <div class="text text-danger mt-1">{{ selectedFileError }}</div>
+      }
+      @if (selectedFile && !selectedFileError) {
+        <div class="text text-success mt-1">{{ selectedFile.name }}</div>
+      }
+    </div>
+  </modal-body>
+  <modal-footer>
+    <div class="d-flex justify-content-end">
+      <button type="button" class="btn btn-light me-2" (click)="addModal.hide()">Cancelar</button>
+      <button type="button" class="btn btn-primary" [disabled]="!canUpload" (click)="add()">
+        Adicionar à lista
+      </button>
+    </div>
+  </modal-footer>
+</app-modal>

@@ -1,16 +1,4 @@
 <section [formGroup]="form">
-  @if (form.get('id').value) {
-    <div class="d-flex justify-content-end m-b-10">
-      <button
-        type="button"
-        class="btn btn-outline-secondary btn-sm"
-        [disabled]="downloadingCertificate"
-        (click)="downloadCertificate()"
-      >
-        <i class="fa fa-file-pdf-o"></i>&nbsp;{{ downloadingCertificate ? 'Gerando...' : 'Emitir certidão em PDF' }}
-      </button>
-    </div>
-  }
   <div class="row">
     <div class="form-group col-md-6 m-b-10">
       <label>Paróquia <span class="text-danger">*</span></label>
@@ -35,15 +23,15 @@
   <div class="row">
     <div class="col-md-3 form-group m-b-10">
       <label>Local <span class="text-danger">*</span></label>
-      <input class="form-control" formControlName="baptism_place" [ngbTypeahead]="searchPlace" />
-      @if (form.get('baptism_place').touched && !form.get('baptism_place').value) {
+      <input class="form-control" formControlName="first_communion_place" [ngbTypeahead]="searchPlace" />
+      @if (form.get('first_communion_place').touched && !form.get('first_communion_place').value) {
         <div class="text text-danger mt-1">Local é obrigatório</div>
       }
     </div>
     <div class="col-md-3 form-group m-b-10">
       <label>Data <span class="text-danger">*</span></label>
-      <input type="date" class="form-control" formControlName="baptism_date" />
-      @if (form.get('baptism_date').touched && !form.get('baptism_date').value) {
+      <input type="date" class="form-control" formControlName="first_communion_date" />
+      @if (form.get('first_communion_date').touched && !form.get('first_communion_date').value) {
         <div class="text text-danger mt-1">Data é obrigatória</div>
       }
     </div>
@@ -76,14 +64,14 @@
     </div>
   </div>
   <hr />
-  <app-godparents-form-list
+  <app-godparents-form-list-first-communions
     [companyId]="companyId"
     [data]="godparents"
     (dataChange)="onGodparentsChange($event)"
-  ></app-godparents-form-list>
+  ></app-godparents-form-list-first-communions>
   <hr />
-  <app-baptism-attachments-form-list
+  <app-first-communion-attachments-form-list
     [data]="attachments"
     (dataChange)="onAttachmentsChange($event)"
-  ></app-baptism-attachments-form-list>
+  ></app-first-communion-attachments-form-list>
 </section>

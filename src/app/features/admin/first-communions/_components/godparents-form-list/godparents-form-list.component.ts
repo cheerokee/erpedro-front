@@ -4,7 +4,7 @@ import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { SharedModule } from '../../../../../@shared/shared.module';
 import { AlertService } from '../../../../../@core/services/alert.service';
 import { createTypeaheadSearch } from '../../../../../@core/utils/create-typeahead-search.helper';
-import { BaptismGodparentService } from '../../../../../@core/modules/parishioner/services/baptism-godparent.service';
+import { FirstCommunionGodparentService } from '../../../../../@core/modules/parishioner/services/first-communion-godparent.service';
 import {
   CustomerAnyCompanySelectorComponent,
   CustomerAnyCompanySelection,
@@ -17,15 +17,16 @@ import {
 } from '../../../../../@shared/components/modal/modal.component';
 
 // Vive em memória (sem persistir sozinho), mesmo contrato de
-// RepresentationsFormUserComponent (front/AI_CONTEXT.md §3.7) — quem usa
-// (FormComponent de Batismo) decide quando sincronizar com o backend, no
-// submit(), comparando com os padrinhos originais carregados no load().
+// GodparentsFormListComponent de Batismo — quem usa (FormComponent) decide
+// quando sincronizar com o backend, no submit(), comparando com os
+// padrinhos originais carregados no load().
 //
-// Modelo híbrido (back: BaptismGodparentEntity) — godparent_id (Customer já
-// cadastrado) OU godparent_name/godparent_origin_parish (pessoa externa,
-// texto livre). is_external decide qual dos dois preencher no payload de
-// criação (ver FormComponent.syncGodparents).
-export interface BaptismGodparentRow {
+// Modelo híbrido (back: FirstCommunionGodparentEntity) — godparent_id
+// (Customer já cadastrado) OU godparent_name/godparent_origin_parish (pessoa
+// externa, texto livre). is_external decide qual dos dois preencher no
+// payload de criação (ver FormComponent.syncGodparents). Diferente de
+// Batismo, padrinho é opcional na Primeira Comunhão — pode ficar vazio.
+export interface FirstCommunionGodparentRow {
   // presente só quando a linha já existe no backend (carregada na edição);
   // ausente numa linha recém-adicionada, OU quando "editada" (ver saveEdit) —
   // sem endpoint de update, editar vira remover + readicionar.
@@ -43,7 +44,7 @@ export interface BaptismGodparentRow {
 type Mode = 'customer' | 'external';
 
 @Component({
-  selector: 'app-godparents-form-list',
+  selector: 'app-godparents-form-list-first-communions',
   templateUrl: './godparents-form-list.component.html',
   styleUrls: ['./godparents-form-list.component.scss'],
   imports: [
@@ -57,9 +58,9 @@ type Mode = 'customer' | 'external';
   ],
 })
 export class GodparentsFormListComponent implements OnChanges {
-  @Input() data: BaptismGodparentRow[] = [];
+  @Input() data: FirstCommunionGodparentRow[] = [];
   @Input() companyId: string | null = null;
-  @Output() dataChange = new EventEmitter<BaptismGodparentRow[]>();
+  @Output() dataChange = new EventEmitter<FirstCommunionGodparentRow[]>();
 
   mode: Mode = 'customer';
 
@@ -88,12 +89,12 @@ export class GodparentsFormListComponent implements OnChanges {
 
   constructor(
     private readonly alertService: AlertService,
-    private readonly baptismGodparentService: BaptismGodparentService,
+    private readonly firstCommunionGodparentService: FirstCommunionGodparentService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['companyId'] && this.companyId) {
-      this.baptismGodparentService.suggestions('course_place', this.companyId).subscribe({
+      this.firstCommunionGodparentService.suggestions('course_place', this.companyId).subscribe({
         next: (result) => (this.coursePlaceSuggestions = result.data ?? []),
       });
     }
@@ -124,11 +125,11 @@ export class GodparentsFormListComponent implements OnChanges {
   confirmCustomer() {
     if (!this.canConfirmCustomer) return;
 
-    // Mesma regra do backend (BaptismGodparentService.create): o mesmo
-    // paroquiano não pode ser padrinho duas vezes do mesmo batismo — checado
-    // aqui também só pra dar feedback imediato, sem esperar o submit falhar.
-    // Não dá pra checar duplicidade de pessoa externa (sem chave confiável),
-    // mesma limitação do backend.
+    // Mesma regra do backend (FirstCommunionGodparentService.create): o
+    // mesmo paroquiano não pode ser padrinho duas vezes do mesmo registro —
+    // checado aqui também só pra dar feedback imediato, sem esperar o submit
+    // falhar. Não dá pra checar duplicidade de pessoa externa (sem chave
+    // confiável), mesma limitação do backend.
     const alreadyAdded = this.data.some(
       (row) => !row.is_external && row.godparent_id === this.selected.id,
     );
@@ -142,7 +143,7 @@ export class GodparentsFormListComponent implements OnChanges {
       return;
     }
 
-    const row: BaptismGodparentRow = {
+    const row: FirstCommunionGodparentRow = {
       is_external: false,
       godparent_id: this.selected.id,
       godparent_name: this.selected.name,
@@ -160,7 +161,7 @@ export class GodparentsFormListComponent implements OnChanges {
   addExternal() {
     if (!this.canAddExternal) return;
 
-    const row: BaptismGodparentRow = {
+    const row: FirstCommunionGodparentRow = {
       is_external: true,
       godparent_name: this.external_name.trim(),
       godparent_origin_parish: this.external_origin_parish?.trim() || undefined,
@@ -201,10 +202,10 @@ export class GodparentsFormListComponent implements OnChanges {
 
   // Sem endpoint de update no backend — "editar" troca a linha por uma nova
   // sem id, o que faz FormComponent.syncGodparents tratar como remover a
-  // antiga + criar outra no submit (mesma simplificação documentada lá).
+  // antiga + criar outra no submit.
   saveEdit(index: number) {
     const original = this.data[index];
-    const updated: BaptismGodparentRow = {
+    const updated: FirstCommunionGodparentRow = {
       ...original,
       id: undefined,
       course_date: this.edit_course_date ?? undefined,

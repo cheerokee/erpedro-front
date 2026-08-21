@@ -20,9 +20,9 @@ import { AlertService } from '../../../../../@core/services/alert.service';
 import { ResultModel } from '../../../../../@core/models/result.model';
 import { SharedModule } from '../../../../../@shared/shared.module';
 
-import { BaptismService } from '../../../../../@core/modules/parishioner/services/baptism.service';
-import { BaptismGodparentService } from '../../../../../@core/modules/parishioner/services/baptism-godparent.service';
-import { BaptismModel } from '../../../../../@core/modules/parishioner/entities/baptism.model';
+import { ConfirmationService } from '../../../../../@core/modules/parishioner/services/confirmation.service';
+import { ConfirmationGodparentService } from '../../../../../@core/modules/parishioner/services/confirmation-godparent.service';
+import { ConfirmationModel } from '../../../../../@core/modules/parishioner/entities/confirmation.model';
 import { CompanySelectorComponent } from '../../../../../@shared/components/selectors/company-selector/company-selector.component';
 import { CompanyModel } from '../../../../../@core/modules/company/entities/company.model';
 import { CustomerSelectorComponent } from '../../../../../@shared/components/selectors/customer-selector/customer-selector.component';
@@ -30,19 +30,19 @@ import { CustomerModel } from '../../../../../@core/modules/general/entities/cus
 import { EmployeeSelectorComponent } from '../../../../../@shared/components/selectors/employee-selector/employee-selector.component';
 import { EmployeeModel } from '../../../../../@core/modules/general/entities/employee.model';
 import {
-  BaptismGodparentRow,
+  ConfirmationGodparentRow,
   GodparentsFormListComponent,
 } from '../godparents-form-list/godparents-form-list.component';
 import {
-  BaptismAttachmentRow,
-  BaptismAttachmentsFormListComponent,
-} from '../baptism-attachments-form-list/baptism-attachments-form-list.component';
-import { BaptismAttachmentService } from '../../../../../@core/modules/parishioner/services/baptism-attachment.service';
+  ConfirmationAttachmentRow,
+  ConfirmationAttachmentsFormListComponent,
+} from '../confirmation-attachments-form-list/confirmation-attachments-form-list.component';
+import { ConfirmationAttachmentService } from '../../../../../@core/modules/parishioner/services/confirmation-attachment.service';
 
-export type FormDataBaptism = BaptismModel.JsonProps;
+export type FormDataConfirmation = ConfirmationModel.JsonProps;
 
 @Component({
-  selector: 'app-form-baptisms',
+  selector: 'app-form-confirmations',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
   imports: [
@@ -52,18 +52,17 @@ export type FormDataBaptism = BaptismModel.JsonProps;
     CompanySelectorComponent,
     EmployeeSelectorComponent,
     GodparentsFormListComponent,
-    BaptismAttachmentsFormListComponent,
+    ConfirmationAttachmentsFormListComponent,
   ],
 })
 export class FormComponent implements OnChanges, OnInit {
   form: FormGroup;
   authenticatedUser: AuthenticatedUser;
   saving = false;
-  downloadingCertificate = false;
 
   companyId: string | null = null;
-  godparents: BaptismGodparentRow[] = [];
-  attachments: BaptismAttachmentRow[] = [];
+  godparents: ConfirmationGodparentRow[] = [];
+  attachments: ConfirmationAttachmentRow[] = [];
 
   // Sugestões de autocomplete (ver BaseCrudHttp.suggestions) — carregadas
   // por paróquia em loadSuggestions(), assim que companyId é conhecido.
@@ -88,7 +87,7 @@ export class FormComponent implements OnChanges, OnInit {
 
   // ids dos padrinhos já existentes no backend no momento em que o form foi
   // carregado — usado só pra diff no submit() (syncGodparents), mesmo padrão
-  // de originalRepresentations em features/admin/users (AI_CONTEXT §3.7).
+  // de FormComponent de Batismo/Primeira Comunhão.
   private originalGodparentIds: string[] = [];
 
   // mesma ideia, mas pra documentos precisa também do título original (pra
@@ -98,9 +97,9 @@ export class FormComponent implements OnChanges, OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private baptismService: BaptismService,
-    private baptismGodparentService: BaptismGodparentService,
-    private baptismAttachmentService: BaptismAttachmentService,
+    private confirmationService: ConfirmationService,
+    private confirmationGodparentService: ConfirmationGodparentService,
+    private confirmationAttachmentService: ConfirmationAttachmentService,
     private alertService: AlertService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -127,8 +126,8 @@ export class FormComponent implements OnChanges, OnInit {
   define() {
     this.form = this.formBuilder.group({
       id: [null],
-      baptism_place: [null, Validators.required],
-      baptism_date: [null, Validators.required],
+      confirmation_place: [null, Validators.required],
+      confirmation_date: [null, Validators.required],
       observation: [null],
       parishioner_id: [null, Validators.required],
       company_id: [null, Validators.required],
@@ -155,8 +154,8 @@ export class FormComponent implements OnChanges, OnInit {
 
     this.form.setValue({
       id: null,
-      baptism_place: null,
-      baptism_date: null,
+      confirmation_place: null,
+      confirmation_date: null,
       observation: null,
       parishioner_id: null,
       company_id: null,
@@ -178,14 +177,8 @@ export class FormComponent implements OnChanges, OnInit {
     this.form.markAsUntouched();
     this.form.markAsPristine();
 
-    // clear() acima às vezes reflete um (selected) tardio (~250ms) vindo do
-    // próprio select2 — a busca de opções (companies/by-like) que ainda
-    // estava em voo quando o usuário selecionou e cancelou quase junto
-    // termina depois, o componente reemite (selected) com o valor já nulo,
-    // e onCompanySelected/onParishionerSelected marcam touched de novo
-    // incondicionalmente. O valor em si não volta a ficar preenchido — só a
-    // mensagem de validação piscaria — por isso reforça o untouched um
-    // pouco depois. Não é 100% à prova de race, mas cobre o caso comum.
+    // clear() acima às vezes reflete um (selected) tardio vindo do próprio
+    // select2 — mesma race documentada em FormComponent de Batismo.
     setTimeout(() => {
       this.form.markAsUntouched();
       this.form.markAsPristine();
@@ -199,10 +192,10 @@ export class FormComponent implements OnChanges, OnInit {
 
     const companyId = this.companyId;
     forkJoin({
-      place: this.baptismService.suggestions('baptism_place', companyId),
-      registryBook: this.baptismService.suggestions('registry_book', companyId),
-      registryPage: this.baptismService.suggestions('registry_page', companyId),
-      registryTerm: this.baptismService.suggestions('registry_term', companyId),
+      place: this.confirmationService.suggestions('confirmation_place', companyId),
+      registryBook: this.confirmationService.suggestions('registry_book', companyId),
+      registryPage: this.confirmationService.suggestions('registry_page', companyId),
+      registryTerm: this.confirmationService.suggestions('registry_term', companyId),
     }).subscribe({
       next: (result) => {
         this.placeSuggestions = result.place.data ?? [];
@@ -213,17 +206,17 @@ export class FormComponent implements OnChanges, OnInit {
     });
   }
 
-  onGodparentsChange(rows: BaptismGodparentRow[]) {
+  onGodparentsChange(rows: ConfirmationGodparentRow[]) {
     this.godparents = rows;
   }
 
-  onAttachmentsChange(rows: BaptismAttachmentRow[]) {
+  onAttachmentsChange(rows: ConfirmationAttachmentRow[]) {
     this.attachments = rows;
   }
 
   load() {
-    const obs$: Observable<ResultModel<BaptismModel.JsonProps>> =
-      this.baptismService.get(this.id);
+    const obs$: Observable<ResultModel<ConfirmationModel.JsonProps>> =
+      this.confirmationService.get(this.id);
 
     obs$.pipe(take(1)).subscribe({
       next: (result) => {
@@ -243,8 +236,8 @@ export class FormComponent implements OnChanges, OnInit {
 
           this.form.setValue({
             id: otherData.id,
-            baptism_place: otherData.baptism_place ?? null,
-            baptism_date: otherData.baptism_date ?? null,
+            confirmation_place: otherData.confirmation_place ?? null,
+            confirmation_date: otherData.confirmation_date ?? null,
             observation: otherData.observation ?? null,
             parishioner_id: parishionerId,
             company_id: this.companyId,
@@ -255,9 +248,8 @@ export class FormComponent implements OnChanges, OnInit {
           });
 
           // Força o reset automático do parishioner-selector/celebrant-selector
-          // (dispara via ngOnChanges quando o [companyId] muda, ver
-          // AI_CONTEXT §3.2) a acontecer antes dos autoset explícitos abaixo,
-          // senão ele pode sobrescrever a pré-seleção correta com null.
+          // a acontecer antes dos autoset explícitos abaixo, senão ele pode
+          // sobrescrever a pré-seleção correta com null.
           this.cdr.detectChanges();
 
           if (this.companyId) this.companySelectorRef?.autoset(this.companyId);
@@ -276,17 +268,17 @@ export class FormComponent implements OnChanges, OnInit {
     });
   }
 
-  /** Backend já traz `godparent.company` (ver front/@core/.../baptism-godparent.service.ts)
-   * — monta as linhas direto, sem chamada extra por padrinho. Modelo híbrido:
-   * um registro sem `godparent` (Customer) é uma pessoa externa, identificada
-   * por `godparent_name`/`godparent_origin_parish` em texto livre. */
-  private loadGodparents(baptismId: string) {
-    this.baptismGodparentService
-      .listByBaptism(baptismId)
+  /** Backend já traz `godparent.company` — monta as linhas direto, sem
+   * chamada extra por padrinho. Modelo híbrido: um registro sem `godparent`
+   * (Customer) é uma pessoa externa, identificada por
+   * `godparent_name`/`godparent_origin_parish` em texto livre. */
+  private loadGodparents(confirmationId: string) {
+    this.confirmationGodparentService
+      .listByConfirmation(confirmationId)
       .pipe(take(1))
       .subscribe({
         next: (result) => {
-          const rows: BaptismGodparentRow[] = (result.data ?? []).map(
+          const rows: ConfirmationGodparentRow[] = (result.data ?? []).map(
             (item: any) => {
               const isExternal = !item.godparent && !item.godparent_id;
 
@@ -314,13 +306,13 @@ export class FormComponent implements OnChanges, OnInit {
       });
   }
 
-  private loadAttachments(baptismId: string) {
-    this.baptismAttachmentService
-      .listByBaptism(baptismId)
+  private loadAttachments(confirmationId: string) {
+    this.confirmationAttachmentService
+      .listByConfirmation(confirmationId)
       .pipe(take(1))
       .subscribe({
         next: (result) => {
-          const rows: BaptismAttachmentRow[] = (result.data ?? []).map((item) => ({
+          const rows: ConfirmationAttachmentRow[] = (result.data ?? []).map((item) => ({
             id: item.id,
             title: item.attachment.title,
             fileName: item.attachment.s3_file.originalName,
@@ -339,16 +331,13 @@ export class FormComponent implements OnChanges, OnInit {
       });
   }
 
-  /** Client-orchestrated, mesmo espírito de syncGodparents/syncRepresentations
-   * — cada linha nova (com `file`, sem `id`) vira um upload real
+  /** Client-orchestrated, mesmo espírito de FormComponent de Batismo/Primeira
+   * Comunhão — cada linha nova (com `file`, sem `id`) vira um upload real
    * (multipart), cada removida vira um DELETE, e uma linha existente cujo
-   * título mudou vira um PUT (só título é editável, ver
-   * BaptismAttachmentsFormListComponent). Não é atômico: se um upload falhar
-   * no meio, os anteriores já foram feitos — mesma simplificação aceita em
-   * syncGodparents. */
+   * título mudou vira um PUT (só título é editável). Não é atômico. */
   private syncAttachments(
-    baptismId: string,
-    rows: BaptismAttachmentRow[],
+    confirmationId: string,
+    rows: ConfirmationAttachmentRow[],
   ): Observable<any> {
     const currentIds = rows.map((row) => row.id).filter(Boolean);
     const removedIds = this.originalAttachmentIds.filter(
@@ -361,26 +350,25 @@ export class FormComponent implements OnChanges, OnInit {
 
     const requests: Observable<any>[] = [
       ...toCreate.map((row) =>
-        this.baptismAttachmentService.create(baptismId, row.title, row.file as File),
+        this.confirmationAttachmentService.create(confirmationId, row.title, row.file as File),
       ),
       ...toUpdate.map((row) =>
-        this.baptismAttachmentService.updateTitle(row.id as string, row.title),
+        this.confirmationAttachmentService.updateTitle(row.id as string, row.title),
       ),
-      ...removedIds.map((id) => this.baptismAttachmentService.delete(id)),
+      ...removedIds.map((id) => this.confirmationAttachmentService.delete(id)),
     ];
 
     return requests.length > 0 ? forkJoin(requests) : of(null);
   }
 
-  /** Client-orchestrated, mesmo espírito de syncRepresentations em
-   * features/admin/users (AI_CONTEXT §7): sem endpoint de "definir todos os
-   * padrinhos de uma vez", cada linha nova vira um POST e cada padrinho
-   * removido vira um DELETE. Não é atômico, e não há UPDATE — editar curso
-   * de um padrinho já adicionado significa remover e readicionar (mesma
-   * simplificação de syncRepresentations, que também só cria/remove). */
+  /** Client-orchestrated, mesmo espírito de FormComponent de Batismo/Primeira
+   * Comunhão: sem endpoint de "definir todos os padrinhos de uma vez", cada
+   * linha nova vira um POST e cada padrinho removido vira um DELETE. Não é
+   * atômico, e não há UPDATE — editar curso de um padrinho já adicionado
+   * significa remover e readicionar. */
   private syncGodparents(
-    baptismId: string,
-    rows: BaptismGodparentRow[],
+    confirmationId: string,
+    rows: ConfirmationGodparentRow[],
   ): Observable<any> {
     const currentIds = rows.map((row) => row.id).filter(Boolean);
     const removedIds = this.originalGodparentIds.filter(
@@ -390,8 +378,8 @@ export class FormComponent implements OnChanges, OnInit {
 
     const requests: Observable<any>[] = [
       ...toCreate.map((row) =>
-        this.baptismGodparentService.create({
-          baptism_id: baptismId,
+        this.confirmationGodparentService.create({
+          confirmation_id: confirmationId,
           // Modelo híbrido: só um dos dois é enviado — Customer cadastrado
           // (godparent_id) ou pessoa externa (nome/paróquia de origem).
           ...(row.is_external
@@ -405,7 +393,7 @@ export class FormComponent implements OnChanges, OnInit {
           course_place: row.course_place,
         } as any),
       ),
-      ...removedIds.map((id) => this.baptismGodparentService.delete(id)),
+      ...removedIds.map((id) => this.confirmationGodparentService.delete(id)),
     ];
 
     return requests.length > 0 ? forkJoin(requests) : of(null);
@@ -421,28 +409,26 @@ export class FormComponent implements OnChanges, OnInit {
     const hasSelfGodparent = this.godparents.some(
       (row) => !row.is_external && row.godparent_id === parishionerId,
     );
-    // Validado aqui, antes do POST do batismo — o backend também recusa isso
-    // (BaptismGodparentService.validate), mas só na criação do padrinho, que
-    // acontece DEPOIS do batismo já persistido (ver syncGodparents). Barrar
-    // no client evita criar um batismo "órfão" sem padrinho quando o usuário
-    // comete esse erro.
+    // Validado aqui, antes do POST — o backend também recusa isso
+    // (ConfirmationGodparentService.validate), mas só na criação do
+    // padrinho, que acontece DEPOIS do registro já persistido (ver
+    // syncGodparents). Barrar no client evita criar um registro "órfão" sem
+    // padrinho quando o usuário comete esse erro.
     if (hasSelfGodparent) {
       this.alertService.alert({
         title: 'Ops, houve um erro!',
-        text: 'O padrinho/madrinha não pode ser a mesma pessoa que está sendo batizada',
+        text: 'O padrinho/madrinha não pode ser a mesma pessoa que está sendo crismada',
         icon: 'error',
         timer: 4000,
       });
       return;
     }
 
-    const data: FormDataBaptism = { ...this.form.value };
-    // company_id é enviado normalmente (CreateBaptismDto/UpdateBaptismDto
-    // aceitam, igual Customer/Employee) — pra usuário comum (tenant
+    const data: FormDataConfirmation = { ...this.form.value };
+    // company_id é enviado normalmente — pra usuário comum (tenant
     // resolvido) o backend ignora e sempre stampa a partir do próprio
-    // contexto (BaseCrudService.tenantStamp); pra superadmin (sem tenant
-    // resolvido) é o único jeito de informar em qual paróquia o batismo está
-    // sendo registrado, já que tenantStamp não faz nada nesse caso.
+    // contexto; pra superadmin é o único jeito de informar em qual paróquia
+    // o registro está sendo criado.
 
     const existingId = data.id;
     delete data.id;
@@ -452,21 +438,19 @@ export class FormComponent implements OnChanges, OnInit {
     const godparents = this.godparents;
     const attachments = this.attachments;
     const save$: Observable<ResultModel<any>> = existingId
-      ? this.baptismService.update(existingId, data)
-      : this.baptismService.create(data);
+      ? this.confirmationService.update(existingId, data)
+      : this.confirmationService.create(data);
 
-    // O batismo precisa existir antes dos padrinhos/documentos (FK
-    // baptism_id) — na criação, o id só existe depois da resposta do
-    // create(); na edição, já é o existingId. Mesma ordem de
-    // syncRepresentations (só roda depois do userId existir), ver
-    // AI_CONTEXT §3.7 do front.
+    // O registro precisa existir antes dos padrinhos/documentos (FK
+    // confirmation_id) — na criação, o id só existe depois da resposta do
+    // create(); na edição, já é o existingId.
     save$
       .pipe(
         switchMap((result) => {
-          const baptismId = existingId ?? (result.data as any)?.id;
+          const confirmationId = existingId ?? (result.data as any)?.id;
           return forkJoin([
-            this.syncGodparents(baptismId, godparents),
-            this.syncAttachments(baptismId, attachments),
+            this.syncGodparents(confirmationId, godparents),
+            this.syncAttachments(confirmationId, attachments),
           ]).pipe(map(() => result));
         }),
         take(1),
@@ -505,59 +489,5 @@ export class FormComponent implements OnChanges, OnInit {
 
   onCelebrantSelected(entity: EmployeeModel.Entity | null) {
     this.form.get('celebrant_id').setValue(entity?.id ?? null);
-  }
-
-  // Só disponível com o registro já salvo (form.get('id').value) — o backend
-  // busca o batismo por id (BaptismCertificateService.generate), não dá pra
-  // gerar a partir de dados ainda não persistidos.
-  downloadCertificate() {
-    const id = this.form.get('id').value;
-    if (!id) return;
-
-    this.downloadingCertificate = true;
-    this.baptismService
-      .certificate(id)
-      .pipe(take(1))
-      .subscribe({
-        next: (blob) => {
-          this.downloadingCertificate = false;
-
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `certidao-batismo-${id}.pdf`;
-          link.click();
-          URL.revokeObjectURL(url);
-        },
-        error: (err) => {
-          this.downloadingCertificate = false;
-          this.alertBlobError(err, 'Não foi possível gerar o certificado');
-        },
-      });
-  }
-
-  // responseType: 'blob' (certificate()) faz o Angular tratar o corpo do
-  // erro também como Blob, não JSON — err.error.message (que
-  // AlertService.alertError lê direto) vem undefined nesse caso. Decodifica
-  // manualmente antes de mostrar o alerta.
-  private async alertBlobError(err: any, fallbackText: string) {
-    let message = fallbackText;
-
-    if (err?.error instanceof Blob) {
-      try {
-        message = JSON.parse(await err.error.text())?.message ?? fallbackText;
-      } catch {
-        // corpo do erro não era JSON (ex.: falha de rede) — mantém o fallback
-      }
-    } else {
-      message = err?.error?.message ?? fallbackText;
-    }
-
-    this.alertService.alert({
-      title: 'Ops, houve um erro!',
-      text: message,
-      icon: 'error',
-      timer: 3000,
-    });
   }
 }
