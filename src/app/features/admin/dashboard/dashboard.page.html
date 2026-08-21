@@ -1,14 +1,27 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-12">
-      <div class="card">
-        <div class="card-header">
-          <h5>Dashboard</h5>
+      @if (awaitingAccess) {
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <i class="fa-solid fa-hourglass-half fa-2x text-muted mb-3"></i>
+            <h5>Sua conta ainda não tem acesso a nenhuma paróquia ou diocese</h5>
+            <p class="text-muted mb-0">
+              Assim que você aceitar um convite de um responsável ou for vinculado a uma
+              paróquia/diocese, o painel administrativo aparecerá aqui.
+            </p>
+          </div>
         </div>
-        <div class="card-body">
-          <p>Bem-vindo ao painel administrativo.</p>
+      } @else {
+        <div class="card">
+          <div class="card-header">
+            <h5>Dashboard</h5>
+          </div>
+          <div class="card-body">
+            <p>Bem-vindo ao painel administrativo.</p>
+          </div>
         </div>
-      </div>
+      }
     </div>
   </div>
 </div>

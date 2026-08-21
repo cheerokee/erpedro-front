@@ -1,0 +1,38 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="form-group">
+    <label class="col-form-label">E-mail</label>
+    <input class="form-control" type="email" placeholder="pessoa@email.com" formControlName="email" />
+    @if (form.controls["email"].touched && form.controls["email"].errors?.["required"]) {
+      <div class="text text-danger mt-1">E-mail é obrigatório</div>
+    }
+    @if (form.controls["email"].touched && form.controls["email"].errors?.["email"]) {
+      <div class="text text-danger mt-1">E-mail inválido</div>
+    }
+  </div>
+  <div class="form-group">
+    <label class="col-form-label">Tipo de convite</label>
+    <select class="form-control" formControlName="role_type">
+      <option [value]="roleTypeEnum.EMPLOYEE">Funcionário</option>
+      <option [value]="roleTypeEnum.ADMIN">Responsável</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="col-form-label">Paróquia (opcional)</label>
+    <app-company-selector
+      #companySelector
+      placeholder="Deixe em branco para usar a sua própria paróquia"
+      [disabled]="!!form.value.holding_id"
+      (selected)="onCompanySelected($event)"
+    ></app-company-selector>
+  </div>
+  @if (form.value.role_type === roleTypeEnum.ADMIN) {
+    <div class="form-group">
+      <label class="col-form-label">Diocese (opcional — só para convite de responsável de diocese)</label>
+      <app-holding-selector
+        #holdingSelector
+        [disabled]="!!form.value.company_id"
+        (selected)="onHoldingSelected($event)"
+      ></app-holding-selector>
+    </div>
+  }
+</form>

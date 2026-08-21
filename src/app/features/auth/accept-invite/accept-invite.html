@@ -1,0 +1,112 @@
+<div class="container-fluid p-0">
+  <div class="row m-0">
+    <div class="col-12 p-0">
+      <div class="login-card login-dark">
+        <div>
+          <div>
+            <a class="logo" [routerLink]="['/dashboard']">
+              <img class="img-fluid for-light" src="/assets/images/logo/logo.png" alt="logo" />
+              <img class="img-fluid for-dark" src="/assets/images/logo/logo_dark.png" alt="logo" />
+            </a>
+          </div>
+          <div class="login-main">
+            @if (status === 'loading') {
+              <h4>Carregando...</h4>
+            }
+
+            @if (status === 'invalid') {
+              <h4>Convite inválido</h4>
+              <p>Este link de convite não é válido, expirou ou já foi usado. Peça um novo convite.</p>
+              <p class="mt-4 mb-0 text-center">
+                <a class="ms-2" [routerLink]="['/sign-in']">Voltar para o login</a>
+              </p>
+            }
+
+            @if (status === 'form') {
+              <form class="theme-form" [formGroup]="form" (ngSubmit)="submit()">
+                <h4>Você foi convidado</h4>
+                <p>Você foi convidado para ser <strong>{{ roleLabel }}</strong>, com o e-mail {{ email }}.</p>
+
+                @if (!hasAccount) {
+                  <div class="form-group">
+                    <label class="col-form-label">Nome</label>
+                    <input class="form-control" type="text" placeholder="Seu nome" formControlName="name" />
+                    @if (form.controls["name"].touched && form.controls["name"].errors?.["required"]) {
+                      <div class="text text-danger mt-1">Nome é obrigatório</div>
+                    }
+                  </div>
+                  <div class="form-group">
+                    <label class="col-form-label">Senha</label>
+                    <div class="form-input position-relative">
+                      <input class="form-control" [type]="show ? 'text' : 'password'"
+                             required=""
+                             placeholder="*********"
+                             formControlName="password"/>
+                      @if (!show) {
+                        <div class="show-hide" (click)="showPassword()">
+                          <span class="show"></span>
+                        </div>
+                      } @else {
+                        <div class="show-hide" (click)="showPassword()">
+                          <span class="Hide"></span>
+                        </div>
+                      }
+                      @if (form.controls["password"].touched && form.controls["password"].errors?.["required"]) {
+                        <div class="text text-danger mt-1">Senha é obrigatória</div>
+                      }
+                      @if (form.controls["password"].touched && form.controls["password"].errors?.["minlength"]) {
+                        <div class="text text-danger mt-1">A senha deve ter no mínimo 6 caracteres</div>
+                      }
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-form-label">Confirmar senha</label>
+                    <div class="form-input position-relative">
+                      <input class="form-control" [type]="showConfirm ? 'text' : 'password'"
+                             required=""
+                             placeholder="*********"
+                             formControlName="confirmPassword"/>
+                      @if (!showConfirm) {
+                        <div class="show-hide" (click)="showConfirmPassword()">
+                          <span class="show"></span>
+                        </div>
+                      } @else {
+                        <div class="show-hide" (click)="showConfirmPassword()">
+                          <span class="Hide"></span>
+                        </div>
+                      }
+                      @if (form.controls["confirmPassword"].touched && form.controls["confirmPassword"].errors?.["required"]) {
+                        <div class="text text-danger mt-1">Confirmação de senha é obrigatória</div>
+                      }
+                      @if (form.controls["confirmPassword"].touched && form.controls["confirmPassword"].errors?.["passwordMismatch"]) {
+                        <div class="text text-danger mt-1">As senhas não coincidem</div>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <p>Já existe uma conta com esse e-mail — é só confirmar abaixo para aceitar o convite.</p>
+                }
+
+                <div class="form-group mb-0">
+                  <div class="text-end">
+                    <button class="btn btn-primary btn-block w-100 mt-3" type="submit" [disabled]="!form.valid || saving">
+                      Aceitar convite
+                    </button>
+                  </div>
+                </div>
+                <p class="mt-4 mb-0 text-center">
+                  Já tem uma conta? <a class="ms-2" [routerLink]="['/sign-in']">Entrar</a>
+                </p>
+              </form>
+            }
+
+            @if (status === 'success') {
+              <h4>Convite aceito!</h4>
+              <p>Você já pode entrar com sua conta. Redirecionando para o login...</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

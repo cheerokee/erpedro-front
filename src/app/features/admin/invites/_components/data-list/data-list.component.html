@@ -1,0 +1,55 @@
+<app-card [border]="true"
+          [padding]="false"
+          [cardBodyClass]="'p-0'">
+  <div class="f-m-light mt-1" headerNoTitle>
+    <div class="row">
+      <div class="col-12">
+        <div class="pull-right">
+          <button (click)="new()" class="btn btn-primary">
+            <i class="fa fa-plus"></i>&nbsp;Novo Convite
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-responsive custom-scrollbar">
+    <table class="table border-bottom-table">
+      <thead>
+      <tr class="border-bottom-primary">
+        <th scope="col">E-mail</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Status</th>
+        <th scope="col">Expira em</th>
+        <th scope="col">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.id) {
+          <tr>
+            <td>{{ row.email }}</td>
+            <td>{{ roleLabel(row) }}</td>
+            <td>{{ statusLabel(row) }}</td>
+            <td>{{ row.expires_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              @if (row.status === 'pending') {
+                <button type="button" (click)="revoke(row.id)" class="btn btn-danger btn-sm">Revogar</button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading) {
+            <tr>
+              <td colspan="5" class="text-center">Nenhum convite encontrado</td>
+            </tr>
+          }
+        }
+        @if (loading) {
+          <tr>
+            <td colspan="5" class="text-center">Carregando...</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</app-card>
+<app-modal-invites #modal (onSave)="onSaved()"></app-modal-invites>
