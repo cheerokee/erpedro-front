@@ -5,7 +5,7 @@ import {
   HttpErrorResponse,
   HttpEvent,
 } from '@angular/common/http';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, EMPTY, Observable, switchMap, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 
 import { AuthService } from '../services/auth.service';
@@ -30,7 +30,26 @@ export const authInterceptor: HttpInterceptorFn = (
       if (error instanceof HttpErrorResponse && error.status === 401) {
         // Se o erro 401 vier da própria rota de refresh, não tente dar refresh de novo!
         if (req.url.includes('/auth/refresh-token')) {
-          authService.signOut();
+          authService.signOut('expired');
+          // EMPTY em vez de propagar o erro — senão o componente que fez a
+          // chamada original também mostra o próprio alerta genérico
+          // ("Não foi possível salvar"), sobrepondo o de sessão expirada.
+          return EMPTY;
+        }
+
+        // Demais rotas públicas de auth (sign-in, forgot/reset-password,
+        // confirm-email) e as de convite (preview/accept, também sem
+        // AuthGuard): um 401 aqui é token de ação inválido/expirado (da
+        // rota em si), não sessão expirada — não tentar refresh nem
+        // deslogar, só repassar o erro pra quem chamou (ex: AcceptInvite
+        // mostrar "convite inválido" em vez de forçar logout de uma sessão
+        // que pode nem existir, ou deslogar por engano quem só clicou num
+        // link de convite vencido estando logado em outra conta).
+        if (
+          req.url.includes('/auth/') ||
+          req.url.includes('/invites/preview') ||
+          req.url.includes('/invites/accept')
+        ) {
           return throwError(() => error);
         }
 
@@ -55,19 +74,12 @@ function handle401Error(
   next: HttpHandlerFn,
   authService: AuthService,
 ) {
+  // authService.refreshToken() já persiste o token novo (setToken/
+  // setRefreshToken) e já chama signOut('expired') sozinho se o refresh
+  // falhar — aqui só repete a chamada original com o token novo, ou
+  // desiste em silêncio (EMPTY) se refreshToken() propagar erro.
   return authService.refreshToken().pipe(
-    switchMap((result) => {
-      authService.setToken(result?.data?.access_token ?? null);
-      authService.setRefreshToken(result?.data?.refresh_token ?? null);
-      // Se o refresh deu certo, repete a chamada que falhou com o novo token
-      return next(addToken(request, result?.data?.access_token ?? null));
-    }),
-    catchError((err) => {
-      // Se o refresh falhou, tchau! (Logout)
-      authService.signOut();
-      return throwError(async () => {
-        return err;
-      });
-    }),
+    switchMap((accessToken) => next(addToken(request, accessToken))),
+    catchError(() => EMPTY),
   );
 }

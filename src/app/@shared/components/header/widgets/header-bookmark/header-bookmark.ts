@@ -3,9 +3,10 @@ import { Component, input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-import { menuItems } from '../../../../data/menu';
+import { filterAccessibleMenu, menuItems } from '../../../../data/menu';
 import { IMenu } from '../../../../interface/menu';
 import { NavService } from '../../../../../@core/services/nav.service';
+import { AccessControlService } from '../../../../../@core/access/access-control.service';
 import { SvgIcon } from '../../../ui/svg-icon/svg-icon';
 
 @Component({
@@ -16,6 +17,7 @@ import { SvgIcon } from '../../../ui/svg-icon/svg-icon';
 })
 export class HeaderBookmark {
   private navService = inject(NavService);
+  private accessControlService = inject(AccessControlService);
 
   readonly bookmark = input<boolean>();
 
@@ -29,7 +31,10 @@ export class HeaderBookmark {
   public searchResultEmpty = false;
 
   constructor() {
-    this.items = JSON.parse(JSON.stringify(menuItems));
+    const accessible = filterAccessibleMenu(menuItems, (key) =>
+      this.accessControlService.can(key),
+    );
+    this.items = JSON.parse(JSON.stringify(accessible));
     this.items.filter((items) => {
       if (items.bookmark) {
         this.bookmarkItems.push(items);

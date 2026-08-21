@@ -1,0 +1,93 @@
+<div class="container-fluid">
+  @if (loading) {
+    <div class="row">
+      <div class="col-sm-12 text-center p-4">Carregando...</div>
+    </div>
+  } @else if (!myEntity) {
+    <div class="row">
+      <div class="col-sm-12">
+        <app-card [border]="true">
+          <p class="m-0">Você não administra nenhuma paróquia ou diocese.</p>
+        </app-card>
+      </div>
+    </div>
+  } @else {
+    <div class="row">
+      <div class="col-sm-12">
+        <app-card [border]="true" [headerTitle]="entityLabel + ': ' + (entity?.name ?? '')">
+          <p>
+            Plano atual: <strong>{{ currentPlanName }}</strong>
+            @if (entity?.status) {
+              <span class="badge bg-light-primary txt-primary ms-2">{{ statusLabelMap[entity.status] }}</span>
+            }
+          </p>
+          @if (entity?.stripe_subscription_id) {
+            <button
+              type="button"
+              class="btn btn-outline-danger btn-sm me-2"
+              [disabled]="actionLoading"
+              (click)="cancelSubscription()"
+            >
+              Cancelar assinatura
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-success btn-sm"
+              [disabled]="actionLoading"
+              (click)="reactivateSubscription()"
+            >
+              Reativar assinatura
+            </button>
+          }
+        </app-card>
+      </div>
+    </div>
+
+    <div class="row">
+      @for (plan of plans; track plan.id) {
+        <div class="col-md-4 mb-3">
+          <app-card [border]="true" [headerTitle]="plan.name">
+            <h3 class="mb-2">
+              {{ plan.price | currency:'BRL' }}<small class="f-14">/mês</small>
+            </h3>
+            @if (plan.trial_days) {
+              <p class="text-muted mb-2">{{ plan.trial_days }} dias de teste grátis</p>
+            }
+            @if (plan.features?.length) {
+              <ul class="mb-3">
+                @for (feature of plan.features; track feature) {
+                  <li>{{ feature }}</li>
+                }
+              </ul>
+            }
+            @if (plan.id === entity?.plan_id) {
+              <span class="badge bg-light-success txt-success">Plano atual</span>
+            } @else if (!entity?.stripe_subscription_id) {
+              <button
+                type="button"
+                class="btn btn-primary w-100"
+                [disabled]="actionLoading"
+                (click)="subscribe(plan.id)"
+              >
+                Assinar
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="btn btn-outline-primary w-100"
+                [disabled]="actionLoading"
+                (click)="changePlan(plan.id)"
+              >
+                Trocar pra este plano
+              </button>
+            }
+          </app-card>
+        </div>
+      } @empty {
+        <div class="col-sm-12">
+          <p class="text-center">Nenhum plano disponível no momento.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

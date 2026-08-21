@@ -11,6 +11,7 @@ import { ControlContainer, FormGroup } from '@angular/forms';
 import { SharedModule } from '../../../../../../@shared/shared.module';
 import { CompanySelectorComponent } from '../../../../../../@shared/components/selectors/company-selector/company-selector.component';
 import { CustomerSelectorComponent } from '../../../../../../@shared/components/selectors/customer-selector/customer-selector.component';
+import { CurrencyMaskDirective } from '../../../../../../@shared/directives/currency-mask.directive';
 import { CompanyModel } from '../../../../../../@core/modules/company/entities/company.model';
 import { CustomerModel } from '../../../../../../@core/modules/general/entities/customer.model';
 import { FinancialBillModel } from '../../../../../../@core/modules/financial/entities/financial-bill.model';
@@ -19,7 +20,7 @@ import { FinancialBillModel } from '../../../../../../@core/modules/financial/en
   selector: 'app-form-basic-financial-bill',
   templateUrl: './basic.component.html',
   styleUrls: ['./basic.component.scss'],
-  imports: [SharedModule, CompanySelectorComponent, CustomerSelectorComponent],
+  imports: [SharedModule, CompanySelectorComponent, CustomerSelectorComponent, CurrencyMaskDirective],
 })
 export class BasicFormFinancialBillComponent implements OnInit, AfterViewInit {
   form: FormGroup;
@@ -74,8 +75,10 @@ export class BasicFormFinancialBillComponent implements OnInit, AfterViewInit {
 
     this.companyId = companyId;
     if (companyId) this.companySelectorRef?.autoset(companyId);
+    else this.companySelectorRef?.clear();
     this.cdr.detectChanges();
 
     if (customerId) this.customerSelectorRef?.autoset(customerId);
+    else this.customerSelectorRef?.clear();
   }
 }

@@ -44,6 +44,11 @@ export class ModalFinancialBillsComponent {
   }
 
   hideEvent() {
+    // Só trocar `id` não reseta o form quando ele já era null (criação
+    // cancelada) — não há transição de valor pro ngOnChanges do form filho
+    // disparar `default()`. Chama explicitamente pra não vazar dados da
+    // tentativa anterior (cancelar, X, backdrop, ESC) na próxima abertura.
     this.id = null;
+    this.formComponent?.default();
   }
 }

@@ -63,12 +63,7 @@ export class FormComponent {
         this.default();
       },
       error: (err) => {
-        this.alertService.alert({
-          title: 'Ops, houve um erro!',
-          text: 'Não foi possível cadastrar ou atualizar o registro',
-          icon: 'error',
-          timer: 3000,
-        });
+        this.alertService.alertError(err, 'Não foi possível cadastrar ou atualizar o registro');
       },
     });
   }

@@ -5,10 +5,11 @@ import { HeaderLogo } from './widgets/header-logo/header-logo';
 import { Profile } from './widgets/profile/profile';
 import { Search } from './widgets/search/search';
 import { Mode } from './widgets/mode/mode';
+import { ActiveCompanySwitcher } from './widgets/active-company-switcher/active-company-switcher';
 
 @Component({
   selector: 'app-header',
-  imports: [HeaderLogo, Search, Mode, Profile],
+  imports: [HeaderLogo, Search, Mode, Profile, ActiveCompanySwitcher],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

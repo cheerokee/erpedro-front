@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { jwtDecode } from 'jwt-decode';
 import {
   BehaviorSubject,
   catchError,
-  filter,
+  finalize,
+  map,
   Observable,
-  take,
-  tap,
+  shareReplay,
   throwError,
 } from 'rxjs';
 
@@ -17,13 +18,23 @@ import { getAuthenticatedUser } from '../utils/get-authenticated-user.helper';
 import { getStorageKey } from '../utils/get-storage-key.helper';
 import { CompanyModel } from '../modules/company/entities/company.model';
 import { RoleModel } from '../modules/acl/entities/role.model';
+import { AlertService } from './alert.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private isRefreshing = false;
-  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
-    null,
-  );
+  // Reentrância de signOut(): quando a sessão expira, é comum mais de uma
+  // requisição falhar quase junto (várias telas buscando dados ao voltar de
+  // um período ocioso) — cada 401 chama signOut() de forma independente.
+  // Sem essa trava, uma segunda chamada concorrente reexecuta removeToken()
+  // (inofensivo) mas também tenta navegar de novo; em cenários mais raros
+  // (retry de refresh com token já nulo, ver refreshToken() abaixo) essa
+  // segunda chamada pode disparar navigateByUrl('/sign-in') numa janela em
+  // que outro código já está no meio de resolver a navegação — a trava
+  // garante um único signOut "de verdade" por vez.
+  private signingOut = false;
+  // Chamada de refresh em andamento, compartilhada entre requisições
+  // concorrentes que expiraram quase juntas — ver refreshToken() abaixo.
+  private refreshInFlight$: Observable<string | null> | null = null;
   private tokenStorageKey: string = getStorageKey();
   private refreshTokenStorageKey: string = `${environment.namekey}_refresh_token`;
   public authenticated$ = new BehaviorSubject<AuthenticatedUser>(null);
@@ -31,6 +42,8 @@ export class AuthService {
   constructor(
     private readonly httpClient: HttpClient,
     public readonly router: Router,
+    private readonly modalService: NgbModal,
+    private readonly alertService: AlertService,
   ) {}
 
   signIn(data: { email: string; password: string }): Observable<any> {
@@ -58,11 +71,41 @@ export class AuthService {
     );
   }
 
-  async signOut() {
-    // Trigger event here to clear all data storages on respective modules
-    this.removeToken();
-    this.removeRefreshToken();
-    await this.router.navigateByUrl('/sign-in'); // Manter navigateByUrl para ativar o ngOnDestroy
+  // reason='expired' identifica logout automático (401 sem refresh possível
+  // — token expirado, tipicamente por inatividade prolongada), vindo de
+  // auth.interceptor.ts ou do catchError de refreshToken() abaixo. reason
+  // padrão 'manual' é o botão "Sair" (profile.ts), que já confirma antes.
+  async signOut(reason: 'manual' | 'expired' = 'manual') {
+    // Segunda chamada concorrente (ver comentário de signingOut) é só um
+    // no-op — a primeira já está cuidando de tudo.
+    if (this.signingOut) return;
+    this.signingOut = true;
+
+    try {
+      // Trigger event here to clear all data storages on respective modules
+      this.removeToken();
+      this.removeRefreshToken();
+      this.authenticated$.next(null);
+
+      // NgbModal renderiza o modal fora da árvore de componentes da rota
+      // (direto no <body>) — navigateByUrl sozinho não o destrói, ficava
+      // órfão por cima da tela de login quando o logout automático disparava
+      // com um modal aberto.
+      this.modalService.dismissAll();
+
+      if (reason === 'expired') {
+        this.alertService.alert({
+          title: 'Sessão expirada',
+          text: 'Você foi desconectado por inatividade. Faça login novamente.',
+          icon: 'warning',
+          timer: 4000,
+        });
+      }
+
+      await this.router.navigateByUrl('/sign-in'); // Manter navigateByUrl para ativar o ngOnDestroy
+    } finally {
+      this.signingOut = false;
+    }
   }
 
   setToken(token: string) {
@@ -93,22 +136,27 @@ export class AuthService {
     return jwtDecode(token);
   }
 
-  refreshToken(): Observable<any> {
-    // Se já estiver ocorrendo um refresh, não inicia outro.
-    // Faz as outras requisições esperarem o novo token.
-    if (this.isRefreshing) {
-      return this.refreshTokenSubject.pipe(
-        filter((token) => token !== null),
-        take(1),
-      );
+  // Se já tem um refresh em andamento, todo mundo (quem iniciou e quem só
+  // chegou depois) compartilha a MESMA chamada HTTP via shareReplay — nunca
+  // dispara uma segunda requisição de refresh em paralelo.
+  //
+  // Antes disso era isRefreshing (boolean) + BehaviorSubject<any> — tinha 2
+  // bugs reais: 1) quem esperava só recebia o token (string) emitido no
+  // subject, mas auth.interceptor.ts lia result?.data?.access_token — pra
+  // quem esperava isso sempre dava undefined, ou seja, toda requisição que
+  // esperava a fila era re-tentada com "Bearer null" mesmo quando o refresh
+  // dava certo; 2) se o refresh falhasse, o subject nunca emitia nada de
+  // novo, e quem esperava ficava pendurado pra sempre (Observable nem
+  // completa nem erra). shareReplay(1) resolve os dois: todo assinante
+  // recebe exatamente o mesmo valor (token novo) ou o mesmo erro.
+  refreshToken(): Observable<string | null> {
+    if (this.refreshInFlight$) {
+      return this.refreshInFlight$;
     }
-
-    this.isRefreshing = true;
-    this.refreshTokenSubject.next(null);
 
     const token = this.getToken();
 
-    return this.httpClient
+    this.refreshInFlight$ = this.httpClient
       .post<any>(
         `${environment.api.url}/v1/auth/refresh-token`,
         {
@@ -119,27 +167,36 @@ export class AuthService {
         },
       )
       .pipe(
-        tap((res) => {
-          this.isRefreshing = false;
-
-          if (!res.data) {
-            const errorMsg = 'Resposta de refresh sem dados (data null)';
-            throw new Error(errorMsg);
+        map((res) => {
+          if (!res?.data?.access_token) {
+            throw new Error('Resposta de refresh sem dados (data null)');
           }
 
           this.setToken(res.data.access_token);
           this.setRefreshToken(res.data.refresh_token);
           this.authenticated$.next(this.getAuthenticateUser());
 
-          this.refreshTokenSubject.next(res.data.access_token);
+          return res.data.access_token as string;
         }),
         catchError((err) => {
-          this.isRefreshing = false;
-
-          this.signOut();
+          // Propaga de verdade (throwError, não EMPTY) — é assim que
+          // handle401Error (auth.interceptor.ts) sabe que deve desistir da
+          // requisição original em vez de tentar retry sem token. signOut é
+          // reentrante (ver comentário de signingOut), então chamar aqui
+          // mesmo com N assinantes concorrentes só desloga uma vez.
+          this.signOut('expired');
           return throwError(() => err);
         }),
+        finalize(() => {
+          // Libera pra próxima expiração de sessão disparar uma chamada de
+          // refresh nova — sem isso, o cache de shareReplay ficaria
+          // reservado pra sempre com o resultado (ou erro) desta vez.
+          this.refreshInFlight$ = null;
+        }),
+        shareReplay(1),
       );
+
+    return this.refreshInFlight$;
   }
 
   getAuthenticateUser(): AuthenticatedUser {
@@ -185,6 +242,10 @@ export class AuthenticatedUser {
   email: string;
   roles?: RoleModel.Entity[];
   companies?: CompanyModel.Entity[];
+  // company_id de todo Employee vinculado a este user (ver AuthUserPayload no back).
+  employeeCompanyIds?: string[];
+  // ids de todas as companies das holdings referenciadas por roles[].holding_id.
+  holdingCompanyIds?: string[];
   exp: number;
   iat: number;
 }

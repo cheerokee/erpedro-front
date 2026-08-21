@@ -4,6 +4,7 @@ import { take } from 'rxjs';
 
 import { SharedModule } from '../../../../../../@shared/shared.module';
 import { FinancialServiceSelectorComponent } from '../../../../../../@shared/components/selectors/financial-service-selector/financial-service-selector.component';
+import { CurrencyMaskDirective } from '../../../../../../@shared/directives/currency-mask.directive';
 import { FinancialBillItemModel } from '../../../../../../@core/modules/financial/entities/financial-bill-item.model';
 import { FinancialServiceModel } from '../../../../../../@core/modules/financial/entities/financial-service.model';
 import { FinancialBillItemService } from '../../../../../../@core/modules/financial/services/financial-bill-item.service';
@@ -21,7 +22,7 @@ import { AlertService } from '../../../../../../@core/services/alert.service';
   selector: 'app-form-items-financial-bill',
   templateUrl: './items.component.html',
   styleUrls: ['./items.component.scss'],
-  imports: [SharedModule, FinancialServiceSelectorComponent],
+  imports: [SharedModule, FinancialServiceSelectorComponent, CurrencyMaskDirective],
 })
 export class ItemsComponent implements OnInit {
   form: FormGroup;
@@ -95,14 +96,9 @@ export class ItemsComponent implements OnInit {
             this.fetchPersisted();
             this.clearAddForm();
           },
-          error: () => {
+          error: (err) => {
             this.saving = false;
-            this.alertService.alert({
-              title: 'Ops, houve um erro!',
-              text: 'Não foi possível adicionar o item',
-              icon: 'error',
-              timer: 3000,
-            });
+            this.alertService.alertError(err, 'Não foi possível adicionar o item');
           },
         });
       return;
@@ -135,13 +131,8 @@ export class ItemsComponent implements OnInit {
         .pipe(take(1))
         .subscribe({
           next: () => this.fetchPersisted(),
-          error: () => {
-            this.alertService.alert({
-              title: 'Ops, houve um erro!',
-              text: 'Não foi possível remover o item',
-              icon: 'error',
-              timer: 3000,
-            });
+          error: (err) => {
+            this.alertService.alertError(err, 'Não foi possível remover o item');
           },
         });
       return;

@@ -148,13 +148,8 @@ export class DataListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => this.fetch(),
-        error: () => {
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível remover o registro',
-            icon: 'error',
-            timer: 3000,
-          });
+        error: (err) => {
+          this.alertService.alertError(err, 'Não foi possível remover o registro');
         },
       });
   }
@@ -174,14 +169,9 @@ export class DataListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (items) => this.downloadExcel(items, scope),
-        error: () => {
+        error: (err) => {
           this.exporting = false;
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível gerar o arquivo Excel',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível gerar o arquivo Excel');
         },
       });
   }

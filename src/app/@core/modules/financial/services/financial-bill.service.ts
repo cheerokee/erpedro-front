@@ -192,7 +192,13 @@ export class FinancialBillService extends BaseCrudHttp<
         field: 'code',
         type: 'eq',
         instanceOf: 'number',
-        value: filter.code as any,
+        // FilterParam.value é tipado como String no schema GraphQL — mandar
+        // o number cru quebra a coerção da variável antes do resolver
+        // rodar (erro engolido silenciosamente pelo Apollo). instanceOf:
+        // 'number' já avisa o backend pra fazer Number(value) antes de
+        // bindar na query, então converter pra string aqui é só pra bater
+        // com o tipo do schema, sem perder a comparação numérica.
+        value: String(filter.code),
         alias: 'b',
       });
     }

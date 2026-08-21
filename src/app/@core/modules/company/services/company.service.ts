@@ -135,6 +135,29 @@ export class CompanyService extends BaseCrudHttp<
       );
   }
 
+  // GET /v1/companies/my-companies (backend, @SkipTenantContext()) — resolve
+  // nome das companies que o usuário logado tem acesso (roles/vínculos/
+  // holding), sem cair na checagem de ambiguidade do TenantContextInterceptor
+  // (essa chamada existe justamente pra viabilizar escolher um X-Company-Id).
+  myCompanies(): Observable<ResultModel<CompanyModel.Entity[]>> {
+    return this.httpClient
+      .get<ResultModel<CompanyModel.Entity[]>>(
+        `${this.path}/v1/companies/my-companies`,
+      )
+      .pipe(
+        map((result) => {
+          if (result.data) {
+            result.data = result.data.map(
+              (company) =>
+                new CompanyModel.Entity({ id: company.id, name: company.name }),
+            );
+          }
+
+          return result;
+        }),
+      );
+  }
+
   getPublicInfo(id: string): Observable<ResultModel<CompanyModel.Entity>> {
     return this.httpClient
       .get<ResultModel<CompanyModel.Entity>>(

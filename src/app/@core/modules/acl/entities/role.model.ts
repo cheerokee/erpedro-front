@@ -19,6 +19,10 @@ export namespace RoleModel {
     company?: CompanyModel.Entity;
     company_id: string;
 
+    // Presente só em roles escopadas a uma holding (diocese) — ver
+    // AuthUserPayloadRole no backend. Ausente em roles globais/company-scoped.
+    holding_id?: string;
+
     type: RoleTypeEnum;
 
     constructor(props: Omit<Entity, 'toModel' | 'toEntity'>) {

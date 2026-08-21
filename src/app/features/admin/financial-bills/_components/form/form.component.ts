@@ -137,13 +137,24 @@ export class FormComponent implements OnChanges, OnInit {
       installments: [[]],
     });
 
+    // Sempre disabled (não só readonly) — assim o Angular aplica o :disabled
+    // nativo no <input> (ver CurrencyMaskDirective.setDisabledState), com o
+    // mesmo cinza "bloqueado" do Bootstrap/tema escuro que o campo "Situação"
+    // já usa, sem precisar de CSS próprio pra imitar a cor certa em cada tema.
+    // getRawValue() (em vez de form.value) em submit() garante que esse
+    // control desabilitado ainda entre no payload.
+    this.form.get('total').disable({ emitEvent: false });
+
     this.default();
 
-    // Enquanto a fatura ainda não existe, total é sempre derivado das
-    // parcelas em memória (não editável — ver basic.component.html). Depois
-    // de criada, total vira um campo livre (mesmo trade-off do backend —
-    // FinancialBillService não recalcula total a partir de installments/items
-    // depois da criação, ver AI_CONTEXT.md do backend §10).
+    // Total é sempre derivado das parcelas, nunca editável direto (ver
+    // basic.component.html — campo fica readonly nos dois modos). Antes da
+    // fatura existir, a lista de parcelas vive só neste FormControl
+    // (installments), então basta escutar valueChanges aqui; depois de
+    // criada, cada parcela é persistida direto via FinancialInstallmentService
+    // (endpoint próprio) e é o InstallmentsComponent que resincroniza este
+    // mesmo campo 'total' após cada add/remove (ver
+    // InstallmentsComponent.syncTotal) — por isso o early-return abaixo.
     this.form.get('installments').valueChanges.subscribe((installments) => {
       if (this.form.get('id').value) return;
 
@@ -156,6 +167,8 @@ export class FormComponent implements OnChanges, OnInit {
   }
 
   default() {
+    this.active = 1;
+
     this.form.setValue({
       id: null,
       release_date: null,
@@ -166,6 +179,14 @@ export class FormComponent implements OnChanges, OnInit {
       items: [],
       installments: [],
     });
+
+    // Seletores/listas das abas filhas mantêm estado próprio — setValue()
+    // acima não limpa a exibição sozinho (ver AI_CONTEXT.md).
+    this.formBasic?.autoset();
+    this.formItems?.reload();
+    this.formInstallments?.reload();
+    this.form.markAsUntouched();
+    this.form.markAsPristine();
   }
 
   load() {
@@ -194,8 +215,8 @@ export class FormComponent implements OnChanges, OnInit {
           this.formInstallments?.reload();
         }
       },
-      error: () => {
-        this.alertFail('Não foi possível carregar o registro');
+      error: (err) => {
+        this.alertService.alertError(err, 'Não foi possível carregar o registro');
       },
     });
   }
@@ -210,9 +231,26 @@ export class FormComponent implements OnChanges, OnInit {
       return;
     }
 
-    const value = this.form.value;
+    // getRawValue() (não form.value) — 'total' fica disabled (ver define()),
+    // e form.value simplesmente omite controls disabled do objeto resultante.
+    const value = this.form.getRawValue();
 
     if (value.id) {
+      // Checagem best-effort — só é possível conferir a lista atual de
+      // parcelas se a aba já foi visitada nesta sessão (formInstallments só
+      // existe enquanto montado, ver ngbNav destroyOnHide). A proteção
+      // principal contra fatura sem parcela em edição é o guard em
+      // InstallmentsComponent.remove() (impede remover a última).
+      if (this.formInstallments && this.formInstallments.installments.length === 0) {
+        this.alertService.alert({
+          title: 'Parcelas obrigatórias',
+          text: 'Adicione ao menos uma parcela antes de salvar (aba Parcelas).',
+          icon: 'warning',
+          timer: 3000,
+        });
+        return;
+      }
+
       this.saving = true;
       this.financialBillService
         .updateBill(value.id, {
@@ -223,7 +261,7 @@ export class FormComponent implements OnChanges, OnInit {
         .pipe(take(1))
         .subscribe({
           next: () => this.saveSuccess(),
-          error: () => this.saveFail(),
+          error: (err) => this.saveFail(err),
         });
       return;
     }
@@ -292,17 +330,8 @@ export class FormComponent implements OnChanges, OnInit {
     this.onSave.emit();
   }
 
-  private saveFail() {
+  private saveFail(err?: any) {
     this.saving = false;
-    this.alertFail('Não foi possível cadastrar ou atualizar o registro');
-  }
-
-  private alertFail(text: string) {
-    this.alertService.alert({
-      title: 'Ops, houve um erro!',
-      text,
-      icon: 'error',
-      timer: 3000,
-    });
+    this.alertService.alertError(err, 'Não foi possível cadastrar ou atualizar o registro');
   }
 }

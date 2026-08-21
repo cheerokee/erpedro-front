@@ -71,15 +71,9 @@ export class ChangePasswordComponent {
             timer: 3000,
           });
         },
-        error: () => {
+        error: (err) => {
           this.isLoading = false;
-
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível atualizar a senha. Tente novamente.',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível atualizar a senha. Tente novamente.');
         },
       });
   }

@@ -23,18 +23,18 @@ export class Profile implements OnInit {
   private alertService = inject(AlertService);
 
   public profile = [
-    {
-      id: 1,
-      title: 'Meu Perfil',
-      icon: 'user',
-      path: 'user/user-profile/1',
-    },
-    {
-      id: 2,
-      title: 'Configurações',
-      icon: 'settings',
-      path: '/settings',
-    },
+    // {
+    //   id: 1,
+    //   title: 'Meu Perfil',
+    //   icon: 'user',
+    //   path: '',
+    // },
+    // {
+    //   id: 2,
+    //   title: 'Configurações',
+    //   icon: 'settings',
+    //   path: '/settings',
+    // },
   ];
 
   ngOnInit() {
@@ -42,7 +42,10 @@ export class Profile implements OnInit {
 
     if (this.authenticatedUser) {
       const profileMenu = this.profile.find((item) => item.id === 1);
-      profileMenu.path = `user/user-profile/${this.authenticatedUser.sub}`;
+
+      if (profileMenu) {
+        profileMenu.path = `/admin/user/user-profile/${this.authenticatedUser.sub}`;
+      }
     }
   }
 

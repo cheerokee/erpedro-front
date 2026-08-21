@@ -4,7 +4,7 @@ export const environment = {
   namekey: 'erpedro',
   api: {
     protocol: 'https',
-    host: 'localhost:3004',
+    host: 'erpedro-back-production.up.railway.app',
     front: 'localhost:4200',
     get url() {
       return `${this.protocol}://${this.host}`;

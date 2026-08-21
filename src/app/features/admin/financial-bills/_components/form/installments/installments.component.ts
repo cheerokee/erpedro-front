@@ -9,6 +9,7 @@ import { ControlContainer, FormBuilder, FormGroup, Validators } from '@angular/f
 import { switchMap, take } from 'rxjs';
 
 import { SharedModule } from '../../../../../../@shared/shared.module';
+import { CurrencyMaskDirective } from '../../../../../../@shared/directives/currency-mask.directive';
 import { FinancialInstallmentModel } from '../../../../../../@core/modules/financial/entities/financial-installment.model';
 import { FinancialTransactionModel } from '../../../../../../@core/modules/financial/entities/financial-transaction.model';
 import { FinancialBillModel } from '../../../../../../@core/modules/financial/entities/financial-bill.model';
@@ -33,7 +34,7 @@ import { AlertService } from '../../../../../../@core/services/alert.service';
   selector: 'app-form-installments-financial-bill',
   templateUrl: './installments.component.html',
   styleUrls: ['./installments.component.scss'],
-  imports: [SharedModule],
+  imports: [SharedModule, CurrencyMaskDirective],
 })
 export class InstallmentsComponent implements OnInit {
   form: FormGroup;
@@ -130,6 +131,15 @@ export class InstallmentsComponent implements OnInit {
   }
 
   async remove(id: string) {
+    // Fatura precisa de ao menos uma parcela definida (não dá pra cobrar nada
+    // sem elas) — bloqueia aqui, não só no submit do form pai, porque em modo
+    // edição cada remoção já é um DELETE imediato (sem "Salvar" depois pra
+    // interceptar).
+    if (this.installments.length <= 1) {
+      this.alertFail('A fatura precisa de ao menos uma parcela — não é possível remover a última.');
+      return;
+    }
+
     const confirmation = await this.alertService.confirm({
       title: 'Remover parcela?',
       text: 'Essa ação não poderá ser desfeita.',
@@ -164,6 +174,19 @@ export class InstallmentsComponent implements OnInit {
   get total(): number {
     return this.installments.reduce(
       (sum, installment) => sum + Number(installment.amount),
+      0,
+    );
+  }
+
+  // Referência pra dividir o valor entre as parcelas sem precisar voltar pra
+  // aba Itens — em modo edição é a última lista carregada por load() (não
+  // atualiza sozinha; adicionar/remover item ali não sincroniza este
+  // control, ver ItemsComponent), suficiente como referência aproximada.
+  get itemsTotal(): number {
+    const items = this.form?.get('items')?.value ?? [];
+    return items.reduce(
+      (sum: number, item: any) =>
+        sum + Number(item.quantity ?? 0) * Number(item.unit_price ?? 0),
       0,
     );
   }
@@ -291,8 +314,20 @@ export class InstallmentsComponent implements OnInit {
       .subscribe({
         next: (result) => {
           this.installments = result.data ?? [];
+          this.syncTotal();
         },
       });
+  }
+
+  // Campo 'total' (aba Dados Gerais) é sempre derivado das parcelas — em
+  // modo edição, adicionar/remover parcela é uma chamada imediata
+  // (FinancialInstallmentService), sem passar pelo Salvar geral, então
+  // precisa resincronizar aqui pra o campo não ficar mostrando um valor
+  // desatualizado até o usuário reabrir o form (o que faria o Salvar enviar
+  // um total antigo, incompatível com a validação do backend —
+  // FinancialBillService.update).
+  private syncTotal() {
+    this.form.get('total')?.setValue(this.total, { emitEvent: false });
   }
 
   private fetchTransactions(installmentId: string) {
