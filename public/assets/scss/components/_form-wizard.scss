@@ -334,6 +334,15 @@
       .stroke-icon-wizard {
         @include pixelstrap-size(33px, 33px);
         @include pixelstrap-flex(flex, center, center);
+        // min-width/min-height + flex-shrink:0 + aspect-ratio: alguns ícones
+        // (glifos mais largos, ex. Font Awesome via compat FA4) empurravam a
+        // largura do item flex além dos 33px, virando elipse em vez de
+        // círculo — travar os 4 juntos garante o círculo independente do
+        // conteúdo do ícone.
+        min-width: 33px;
+        min-height: 33px;
+        flex-shrink: 0;
+        aspect-ratio: 1 / 1;
         background-color: var(--white);
         border-radius: 50%;
         position: relative;
@@ -342,6 +351,7 @@
         i {
           margin-right: 0;
           color: $badge-light-color;
+          line-height: 1;
         }
       }
 

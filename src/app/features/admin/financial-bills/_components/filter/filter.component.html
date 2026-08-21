@@ -10,19 +10,19 @@
     </h2>
     <div class="accordion-collapse collapse show" ngbAccordionCollapse>
       <div [formGroup]="form" class="accordion-body" ngbAccordionBody >
-        <div class="row">
-          <div class="col-md-3 form-group">
+        <div class="row m-b-20">
+          <div class="col-md-4 form-group">
             <label>Código</label>
             <input type="number" formControlName="code" class="form-control" />
           </div>
-          <div class="col-md-3 form-group">
+          <div class="col-md-4 form-group">
             <label>Paróquia</label>
             <app-company-selector
               #companySelector
               (selected)="onCompanySelected($event)"
             ></app-company-selector>
           </div>
-          <div class="col-md-3 form-group">
+          <div class="col-md-4 form-group">
             <label>Devedor (Paroquiano)</label>
             <app-customer-selector
               #customerSelector
@@ -30,7 +30,9 @@
               (selected)="onCustomerSelected($event)"
             ></app-customer-selector>
           </div>
-          <div class="col-md-3 form-group">
+        </div>
+        <div class="row m-b-20">
+          <div class="col-md-4 form-group">
             <label>Situação</label>
             <select formControlName="status" class="form-select">
               <option [ngValue]="null">Todas</option>
