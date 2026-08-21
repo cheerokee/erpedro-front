@@ -3,9 +3,10 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-import { menuItems } from '../../../../data/menu';
+import { filterAccessibleMenu, menuItems } from '../../../../data/menu';
 import { IMenu } from '../../../../interface/menu';
 import { NavService } from '../../../../../@core/services/nav.service';
+import { AccessControlService } from '../../../../../@core/access/access-control.service';
 import { FeatherIcon } from '../../../ui/feather-icon/feather-icon';
 import { SvgIcon } from '../../../ui/svg-icon/svg-icon';
 
@@ -17,6 +18,7 @@ import { SvgIcon } from '../../../ui/svg-icon/svg-icon';
 })
 export class Search {
   navService = inject(NavService);
+  private accessControlService = inject(AccessControlService);
 
   public menuItems: IMenu[] = [];
   public items: IMenu[] = [];
@@ -26,7 +28,10 @@ export class Search {
   public text: string = '';
 
   constructor() {
-    this.items = JSON.parse(JSON.stringify(menuItems));
+    const accessible = filterAccessibleMenu(menuItems, (key) =>
+      this.accessControlService.can(key),
+    );
+    this.items = JSON.parse(JSON.stringify(accessible));
   }
 
   searchTerm(term: string) {
