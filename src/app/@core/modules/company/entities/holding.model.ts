@@ -26,7 +26,7 @@ export namespace HoldingModel {
     plan?: PlanModel.Entity;
     plan_id?: string;
 
-    status: CompanyModel.BillingStatusEnum;
+    status?: CompanyModel.BillingStatusEnum;
     stripe_customer_id?: string;
     stripe_subscription_id?: string;
 
