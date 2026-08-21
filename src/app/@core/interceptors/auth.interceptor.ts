@@ -74,18 +74,12 @@ function handle401Error(
   next: HttpHandlerFn,
   authService: AuthService,
 ) {
+  // authService.refreshToken() já persiste o token novo (setToken/
+  // setRefreshToken) e já chama signOut('expired') sozinho se o refresh
+  // falhar — aqui só repete a chamada original com o token novo, ou
+  // desiste em silêncio (EMPTY) se refreshToken() propagar erro.
   return authService.refreshToken().pipe(
-    switchMap((result) => {
-      authService.setToken(result?.data?.access_token ?? null);
-      authService.setRefreshToken(result?.data?.refresh_token ?? null);
-      // Se o refresh deu certo, repete a chamada que falhou com o novo token
-      return next(addToken(request, result?.data?.access_token ?? null));
-    }),
-    catchError(() => {
-      // Se o refresh falhou, tchau! (Logout) — EMPTY em vez de propagar,
-      // mesmo motivo do catchError acima.
-      authService.signOut('expired');
-      return EMPTY;
-    }),
+    switchMap((accessToken) => next(addToken(request, accessToken))),
+    catchError(() => EMPTY),
   );
 }
