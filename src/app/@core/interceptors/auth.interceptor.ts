@@ -38,11 +38,18 @@ export const authInterceptor: HttpInterceptorFn = (
         }
 
         // Demais rotas públicas de auth (sign-in, forgot/reset-password,
-        // confirm-email): um 401 aqui é credencial/token inválido, não
-        // sessão expirada — não tentar refresh nem deslogar, só repassar
-        // o erro pra quem chamou (ex: AuthObserver.error() mostrar
-        // "Usuário ou senha incorreto").
-        if (req.url.includes('/auth/')) {
+        // confirm-email) e as de convite (preview/accept, também sem
+        // AuthGuard): um 401 aqui é token de ação inválido/expirado (da
+        // rota em si), não sessão expirada — não tentar refresh nem
+        // deslogar, só repassar o erro pra quem chamou (ex: AcceptInvite
+        // mostrar "convite inválido" em vez de forçar logout de uma sessão
+        // que pode nem existir, ou deslogar por engano quem só clicou num
+        // link de convite vencido estando logado em outra conta).
+        if (
+          req.url.includes('/auth/') ||
+          req.url.includes('/invites/preview') ||
+          req.url.includes('/invites/accept')
+        ) {
           return throwError(() => error);
         }
 
