@@ -8,9 +8,13 @@ import { parishionersRoutes } from './parishioners/parishioners.routes';
 import { addressesRoutes } from './addresses/addresses.routes';
 import { employeesRoutes } from './employees/employees.routes';
 import { companiesRoutes } from './companies/companies.routes';
+import { invitesRoutes } from './invites/invites.routes';
 import { financialServicesRoutes } from './financial-services/financial-services.routes';
 import { financialBillsRoutes } from './financial-bills/financial-bills.routes';
 import { baptismsRoutes } from './baptisms/baptisms.routes';
+import { firstCommunionsRoutes } from './first-communions/first-communions.routes';
+import { confirmationsRoutes } from './confirmations/confirmations.routes';
+import { marriagesRoutes } from './marriages/marriages.routes';
 import { billingRoutes } from './billing/billing.routes';
 
 export const adminRoutes: Routes = [
@@ -61,6 +65,10 @@ export const adminRoutes: Routes = [
         children: companiesRoutes,
       },
       {
+        path: 'invites',
+        children: invitesRoutes,
+      },
+      {
         path: 'financial-services',
         children: financialServicesRoutes,
       },
@@ -71,6 +79,18 @@ export const adminRoutes: Routes = [
       {
         path: 'baptisms',
         children: baptismsRoutes,
+      },
+      {
+        path: 'first-communions',
+        children: firstCommunionsRoutes,
+      },
+      {
+        path: 'confirmations',
+        children: confirmationsRoutes,
+      },
+      {
+        path: 'marriages',
+        children: marriagesRoutes,
       },
       {
         path: 'billing',

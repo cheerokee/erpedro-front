@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { adminRoutes } from './features/admin/admin.routes';
 import { AuthGuard } from './@core/guards/auth.guard';
+import { AccessGuard } from './@core/guards/access.guard';
 
 export const routes: Routes = [
   {
@@ -12,6 +13,11 @@ export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [AuthGuard],
+    // canActivateChild se aplica em cascata a toda rota filha (incluindo
+    // netas, ex. /admin/dashboard, /admin/parishioners/new) — nova rota
+    // registrada em admin.routes.ts já nasce bloqueada por padrão, sem
+    // precisar declarar guard nenhum nela (ver AccessGuard/ACCESS_RULES).
+    canActivateChild: [AccessGuard],
     children: adminRoutes,
   },
   {
@@ -36,6 +42,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/confirm-email/confirm-email').then(
         (m) => m.ConfirmEmail,
+      ),
+  },
+  {
+    path: 'accept-invite',
+    loadComponent: () =>
+      import('./features/auth/accept-invite/accept-invite').then(
+        (m) => m.AcceptInvite,
       ),
   },
   {
