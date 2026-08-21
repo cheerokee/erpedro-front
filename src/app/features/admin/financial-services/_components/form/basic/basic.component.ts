@@ -3,13 +3,14 @@ import { ControlContainer, FormGroup } from '@angular/forms';
 
 import { SharedModule } from '../../../../../../@shared/shared.module';
 import { CompanySelectorComponent } from '../../../../../../@shared/components/selectors/company-selector/company-selector.component';
+import { CurrencyMaskDirective } from '../../../../../../@shared/directives/currency-mask.directive';
 import { CompanyModel } from '../../../../../../@core/modules/company/entities/company.model';
 
 @Component({
   selector: 'app-form-basic-financial-service',
   templateUrl: './basic.component.html',
   styleUrls: ['./basic.component.scss'],
-  imports: [SharedModule, CompanySelectorComponent],
+  imports: [SharedModule, CompanySelectorComponent, CurrencyMaskDirective],
 })
 export class BasicFormFinancialServiceComponent implements OnInit, AfterViewInit {
   form: FormGroup;
@@ -31,8 +32,10 @@ export class BasicFormFinancialServiceComponent implements OnInit, AfterViewInit
     this.form.get('company_id').markAsTouched();
   }
 
-  /** Preseleciona a paróquia em telas de edição — chamado pelo componente pai. */
+  /** Preseleciona a paróquia em telas de edição, ou limpa a exibição quando
+   * o form pai é resetado (criação cancelada) — chamado pelo componente pai. */
   autoset(companyId: string | null) {
     if (companyId) this.companySelectorRef?.autoset(companyId);
+    else this.companySelectorRef?.clear();
   }
 }

@@ -15,3 +15,10 @@ Você pode consultar os arquivos e diretórios para poder saber sobre arquitetur
 - PRODUCT_CONTEXT.md
 - docs/business
 - docs/technical
+
+A documentação do Site (institucional/landing page) está disponível em:
+/caminho/local/para/erpedro/site
+
+Você pode consultar os arquivos para manter consistência de marca/copy entre o site institucional e a aplicação logada:
+- README.md
+- CLAUDE.md

@@ -36,21 +36,22 @@
     </div>
     <div class="form-group col-md-4 m-b-10">
       <label>Total</label>
-      <input type="number" step="0.01" class="form-control" [readonly]="!editMode" formControlName="total"/>
-      @if (!editMode) {
-        <small class="text-muted">Calculado a partir das parcelas.</small>
-      }
+      <input type="text" appCurrencyMask class="form-control" formControlName="total"/>
+      <small class="text-muted">Calculado a partir das parcelas — sempre igual à soma delas.</small>
     </div>
-    @if (editMode) {
-      <div class="form-group col-md-4 m-b-10">
-        <label>Situação</label>
+    <div class="form-group col-md-4 m-b-10">
+      <label>Situação</label>
+      @if (editMode) {
         <select formControlName="status" class="form-select">
           <option [ngValue]="statusEnum.OPEN">{{ statusEnumStr.OPEN }}</option>
           <option [ngValue]="statusEnum.PARTIALLY_PAID">{{ statusEnumStr.PARTIALLY_PAID }}</option>
           <option [ngValue]="statusEnum.PAID">{{ statusEnumStr.PAID }}</option>
           <option [ngValue]="statusEnum.CANCELED">{{ statusEnumStr.CANCELED }}</option>
         </select>
-      </div>
-    }
+      } @else {
+        <input type="text" class="form-control" [value]="statusEnumStr.OPEN" disabled />
+        <small class="text-muted">Toda fatura nasce como "Aberta".</small>
+      }
+    </div>
   </div>
 </section>

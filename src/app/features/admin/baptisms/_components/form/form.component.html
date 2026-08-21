@@ -1,0 +1,89 @@
+<section [formGroup]="form">
+  @if (form.get('id').value) {
+    <div class="d-flex justify-content-end m-b-10">
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        [disabled]="downloadingCertificate"
+        (click)="downloadCertificate()"
+      >
+        <i class="fa fa-file-pdf-o"></i>&nbsp;{{ downloadingCertificate ? 'Gerando...' : 'Emitir certidão em PDF' }}
+      </button>
+    </div>
+  }
+  <div class="row">
+    <div class="form-group col-md-6 m-b-10">
+      <label>Paróquia <span class="text-danger">*</span></label>
+      <app-company-selector #companySelector
+                            [disabled]="!!form.get('id').value"
+                            (selected)="onCompanySelected($event)"></app-company-selector>
+      @if (!form.get('id').value && form.get('company_id').touched && !form.get('company_id').value) {
+        <div class="text text-danger mt-1">Paróquia é obrigatória</div>
+      }
+    </div>
+    <div class="form-group col-md-6 m-b-10">
+      <label>Paroquiano <span class="text-danger">*</span></label>
+      <app-customer-selector #parishionerSelector
+                             [companyId]="form.get('company_id').value"
+                             [disabled]="!!form.get('id').value"
+                             (selected)="onParishionerSelected($event)"></app-customer-selector>
+      @if (!form.get('id').value && form.get('parishioner_id').touched && !form.get('parishioner_id').value) {
+        <div class="text text-danger mt-1">Paroquiano é obrigatório</div>
+      }
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3 form-group m-b-10">
+      <label>Local <span class="text-danger">*</span></label>
+      <input class="form-control" formControlName="baptism_place" [ngbTypeahead]="searchPlace" />
+      @if (form.get('baptism_place').touched && !form.get('baptism_place').value) {
+        <div class="text text-danger mt-1">Local é obrigatório</div>
+      }
+    </div>
+    <div class="col-md-3 form-group m-b-10">
+      <label>Data <span class="text-danger">*</span></label>
+      <input type="date" class="form-control" formControlName="baptism_date" />
+      @if (form.get('baptism_date').touched && !form.get('baptism_date').value) {
+        <div class="text text-danger mt-1">Data é obrigatória</div>
+      }
+    </div>
+    <div class="form-group col-md-6 m-b-10 m-b-10">
+      <label>Celebrante</label>
+      <app-employee-selector #celebrantSelector
+                             [companyId]="form.get('company_id').value"
+                             [placeholder]="'Selecione o padre'"
+                             (selected)="onCelebrantSelected($event)"></app-employee-selector>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 form-group m-b-10">
+      <label>Livro</label>
+      <input class="form-control" formControlName="registry_book" [ngbTypeahead]="searchRegistryBook" />
+    </div>
+    <div class="col-md-4 form-group m-b-10">
+      <label>Folha</label>
+      <input class="form-control" formControlName="registry_page" [ngbTypeahead]="searchRegistryPage" />
+    </div>
+    <div class="col-md-4 form-group m-b-10">
+      <label>Termo</label>
+      <input class="form-control" formControlName="registry_term" [ngbTypeahead]="searchRegistryTerm" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 form-group m-b-10">
+      <label>Observação</label>
+      <input class="form-control" formControlName="observation" />
+    </div>
+  </div>
+  <hr />
+  <app-godparents-form-list
+    [companyId]="companyId"
+    [data]="godparents"
+    (dataChange)="onGodparentsChange($event)"
+  ></app-godparents-form-list>
+  <hr />
+  <app-baptism-attachments-form-list
+    [data]="attachments"
+    (dataChange)="onAttachmentsChange($event)"
+  ></app-baptism-attachments-form-list>
+</section>

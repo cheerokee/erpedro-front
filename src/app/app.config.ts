@@ -22,6 +22,7 @@ import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client';
 import { authInterceptor } from './@core/interceptors/auth.interceptor';
+import { companyHeaderInterceptor } from './@core/interceptors/company-header.interceptor';
 import { environment } from '../environments/environment';
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -33,7 +34,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     DecimalPipe,
     // provideHttpClient(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(
+      withInterceptors([authInterceptor, companyHeaderInterceptor]),
+    ),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(
       routes,

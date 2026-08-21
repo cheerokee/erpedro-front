@@ -20,7 +20,7 @@
     </div>
     <div class="form-group col-md-3 m-b-10">
       <label>Preço <span class="text-danger">*</span></label>
-      <input type="number" step="0.01" min="0" class="form-control"
+      <input type="text" appCurrencyMask class="form-control"
              [class.is-invalid]="form.controls['price'].touched && form.controls['price'].invalid"
              formControlName="price"/>
       @if (form.controls['price'].touched && form.controls['price'].errors?.['required']) {

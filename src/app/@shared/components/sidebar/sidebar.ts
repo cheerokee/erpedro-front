@@ -4,9 +4,10 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { items, menuItems } from '../../data/menu';
+import { filterAccessibleMenu, items, menuItems } from '../../data/menu';
 import { IMenu } from '../../interface/menu';
 import { LayoutService } from '../../../@core/services/layout.service';
+import { AccessControlService } from '../../../@core/access/access-control.service';
 import { HeaderLogo } from '../header/widgets/header-logo/header-logo';
 import { FeatherIcon } from '../ui/feather-icon/feather-icon';
 import { SvgIcon } from '../ui/svg-icon/svg-icon';
@@ -26,6 +27,7 @@ import { SvgIcon } from '../ui/svg-icon/svg-icon';
 })
 export class Sidebar {
   private router = inject(Router);
+  private accessControlService = inject(AccessControlService);
   layoutService = inject(LayoutService);
 
   public menuItems = menuItems;
@@ -36,7 +38,10 @@ export class Sidebar {
 
   constructor() {
     this.items.subscribe((menuItems) => {
-      this.menuItems = menuItems;
+      this.menuItems = filterAccessibleMenu(menuItems, (key) =>
+        this.accessControlService.can(key),
+      );
+
       this.router.events.subscribe((event) => {
         if (event instanceof NavigationEnd) {
           const urlTree = this.router.parseUrl(event.url);

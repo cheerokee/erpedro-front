@@ -60,15 +60,20 @@ export class BasicFormParishionerComponent implements OnInit, AfterViewInit {
     this.form.get('mother_id').setValue(entity?.id ?? null);
   }
 
-  /** Preseleciona paróquia/pai/mãe em telas de edição — chamado pelo componente pai. */
+  /** Preseleciona paróquia/pai/mãe em telas de edição, ou limpa a exibição
+   * quando o form pai é resetado (criação cancelada) — chamado pelo
+   * componente pai. */
   autoset() {
     const companyId = this.form.get('company_id').value;
     if (companyId) this.companySelectorRef?.autoset(companyId);
+    else this.companySelectorRef?.clear();
 
     const fatherId = this.form.get('father_id').value;
     if (fatherId) this.fatherSelectorRef?.autoset(fatherId);
+    else this.fatherSelectorRef?.clear();
 
     const motherId = this.form.get('mother_id').value;
     if (motherId) this.motherSelectorRef?.autoset(motherId);
+    else this.motherSelectorRef?.clear();
   }
 }

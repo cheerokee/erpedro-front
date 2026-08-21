@@ -1,0 +1,75 @@
+<div class="input-group">
+  <select2
+    [data]="data"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [customSearchEnabled]="true"
+    [minCharForSearch]="0"
+    [noResultMessage]="isLoading ? 'Buscando...' : 'Nenhum paroquiano encontrado'"
+    (search)="onSearch($event)"
+    (update)="onUpdate($event)"
+  ></select2>
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    title="Cadastrar novo paroquiano"
+    [disabled]="disabled"
+    (click)="openQuickCreate()"
+  >
+    <i class="fa-solid fa-plus"></i>
+  </button>
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    title="Limpar"
+    [disabled]="disabled"
+    (click)="clear()"
+  >
+    <i class="fa-solid fa-eraser"></i>
+  </button>
+</div>
+
+<app-modal #quickCreateModal [size]="'md'">
+  <modal-header>
+    <h4>Cadastro rápido de paroquiano</h4>
+  </modal-header>
+  <modal-body>
+    <section [formGroup]="quickCreateForm">
+      <div class="form-group m-b-10">
+        <label>Paróquia <span class="text-danger">*</span></label>
+        <app-company-selector
+          #quickCreateCompanySelector
+          (selected)="onQuickCreateCompanySelected($event)"
+        ></app-company-selector>
+        @if (quickCreateForm.get('company_id').touched && !quickCreateForm.get('company_id').value) {
+          <div class="text text-danger mt-1">Paróquia é obrigatória</div>
+        }
+      </div>
+      <div class="form-group m-b-10">
+        <label>Nome <span class="text-danger">*</span></label>
+        <input class="form-control" formControlName="name" />
+        @if (quickCreateForm.get('name').touched && !quickCreateForm.get('name').value) {
+          <div class="text text-danger mt-1">Nome é obrigatório</div>
+        }
+      </div>
+      <div class="form-group m-b-10">
+        <label>Documento</label>
+        <input class="form-control" formControlName="document" />
+      </div>
+    </section>
+  </modal-body>
+  <modal-footer>
+    <div class="d-flex justify-content-end">
+      <button type="button" class="btn btn-light me-2" (click)="quickCreateModal.hide()">Cancelar</button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="quickCreateSaving"
+        (click)="submitQuickCreate()"
+      >
+        <i class="fa fa-save"></i>&nbsp;Cadastrar
+      </button>
+    </div>
+  </modal-footer>
+</app-modal>

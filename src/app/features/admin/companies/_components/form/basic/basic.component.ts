@@ -31,8 +31,10 @@ export class BasicFormCompanyComponent implements OnInit, AfterViewInit {
     this.form.get('owner_id').markAsTouched();
   }
 
-  /** Preseleciona o usuário em telas de edição — chamado pelo componente pai. */
+  /** Preseleciona o usuário em telas de edição, ou limpa a exibição quando
+   * o form pai é resetado (criação cancelada) — chamado pelo componente pai. */
   autoset(userId: string | null) {
     if (userId) this.userSelectorRef?.autoset(userId);
+    else this.userSelectorRef?.clear();
   }
 }

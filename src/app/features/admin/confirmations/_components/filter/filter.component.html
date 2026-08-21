@@ -1,0 +1,46 @@
+<section class="accordion dark-accordion" ngbAccordion>
+  <div class="accordion-item" ngbAccordionItem [collapsed]="false">
+    <h2 class="accordion-header" ngbAccordionHeader>
+      <button class="accordion-button collapsed accordion-light-primary txt-primary active"
+              type="button"
+              ngbAccordionButton>
+        Filtro
+        <app-feather-icon [icon]="'chevron-down'" [class]="'svg-color'" />
+      </button>
+    </h2>
+    <div class="accordion-collapse collapse show" ngbAccordionCollapse>
+      <div [formGroup]="form" class="accordion-body" ngbAccordionBody >
+        <div class="row m-b-20">
+          <div class="col-md-6 form-group">
+            <label>Paróquia</label>
+            <app-company-selector #companySelector
+                                  (selected)="onCompanySelected($event)"></app-company-selector>
+          </div>
+          <div class="col-md-6 form-group">
+            <label>Paroquiano</label>
+            <app-customer-selector #parishionerSelector
+                                   [companyId]="form.get('company_id').value"
+                                   (selected)="onParishionerSelected($event)"></app-customer-selector>
+          </div>
+        </div>
+        <div class="row m-b-20">
+          <div class="col-md-4 form-group">
+            <label>Data</label>
+            <input type="date" class="form-control" formControlName="confirmation_date" />
+          </div>
+          <div class="col-md-4 form-group">
+            <label>Local</label>
+            <input class="form-control" formControlName="confirmation_place" />
+          </div>
+        </div>
+        <div class="row m-t-10">
+          <div class="col-12 d-flex justify-content-end">
+            <button type="button" class="btn btn-light btn-sm" (click)="clear()">
+              <i class="fa fa-eraser"></i>&nbsp;Limpar filtros
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

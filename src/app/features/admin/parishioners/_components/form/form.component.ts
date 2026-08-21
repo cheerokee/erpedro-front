@@ -148,6 +148,8 @@ export class FormComponent implements OnChanges, OnInit {
   }
 
   default() {
+    this.active = 1;
+
     this.form.setValue({
       id: null,
       name: null,
@@ -164,6 +166,13 @@ export class FormComponent implements OnChanges, OnInit {
       addresses: [],
     });
     this.originalAddressIds = [];
+
+    // Seletores das abas filhas mantêm rótulo exibido em estado próprio —
+    // setValue() acima não limpa a exibição sozinho (ver AI_CONTEXT.md).
+    this.formBasic?.autoset();
+    this.formAddress?.autoset();
+    this.form.markAsUntouched();
+    this.form.markAsPristine();
   }
 
   load() {
@@ -196,13 +205,8 @@ export class FormComponent implements OnChanges, OnInit {
           this.formAddress?.autoset();
         }
       },
-      error: () => {
-        this.alertService.alert({
-          title: 'Ops, houve um erro!',
-          text: 'Não foi possível carregar o registro',
-          icon: 'error',
-          timer: 3000,
-        });
+      error: (err) => {
+        this.alertService.alertError(err, 'Não foi possível carregar o registro');
       },
     });
   }
@@ -250,14 +254,9 @@ export class FormComponent implements OnChanges, OnInit {
           this.default();
           this.onSave.emit();
         },
-        error: () => {
+        error: (err) => {
           this.saving = false;
-          this.alertService.alert({
-            title: 'Ops, houve um erro!',
-            text: 'Não foi possível cadastrar ou atualizar o registro',
-            icon: 'error',
-            timer: 3000,
-          });
+          this.alertService.alertError(err, 'Não foi possível cadastrar ou atualizar o registro');
         },
       });
   }

@@ -1,0 +1,11 @@
+@if (visible) {
+  <select
+    class="form-select form-select-sm active-company-select"
+    [ngModel]="activeCompanyId"
+    (ngModelChange)="onChange($event)"
+  >
+    @for (company of companies; track company.id) {
+      <option [value]="company.id">{{ company.name }}</option>
+    }
+  </select>
+}

@@ -1,0 +1,123 @@
+<label class="f-w-600">Padrinhos/Madrinhas</label>
+
+<div class="table-responsive m-b-10">
+  <table class="table table-bordered table-striped border-bottom-table">
+    <thead>
+    <tr>
+      <th scope="col">Nome</th>
+      <th scope="col">Vínculo</th>
+      <th scope="col">Curso</th>
+      <th scope="col">Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (row of data; track (row.id ?? row.godparent_id ?? row.godparent_name) + '-' + $index; let i = $index) {
+        <tr>
+          <td>{{ row.godparent_name }}</td>
+          <td>
+            @if (row.is_external) {
+              <span class="badge bg-secondary">Externo</span>
+              @if (row.godparent_origin_parish) { &nbsp;{{ row.godparent_origin_parish }} }
+            } @else {
+              <span class="badge bg-primary">Cadastrado</span>&nbsp;{{ row.company_name }}
+            }
+          </td>
+          <td>
+            @if (editingIndex === i) {
+              <div class="d-flex gap-1 flex-wrap">
+                <input type="date" class="form-control form-control-sm" style="width:135px" [(ngModel)]="edit_course_date" />
+                <input type="number" min="0" class="form-control form-control-sm" style="width:70px" placeholder="Horas" [(ngModel)]="edit_course_hours" />
+                <input type="text" class="form-control form-control-sm" style="width:130px" placeholder="Local" [(ngModel)]="edit_course_place" [ngbTypeahead]="searchCoursePlace" />
+              </div>
+            } @else {
+              @if (row.course_date || row.course_hours || row.course_place) {
+                {{ row.course_date ? (row.course_date | date: 'dd/MM/yyyy') : '-' }}
+                @if (row.course_hours) { &nbsp;({{ row.course_hours }}h) }
+                @if (row.course_place) { &nbsp;— {{ row.course_place }} }
+              } @else {
+                -
+              }
+            }
+          </td>
+          <td class="text-nowrap">
+            @if (editingIndex === i) {
+              <button type="button" class="btn btn-success btn-sm" title="Salvar" (click)="saveEdit(i)"><i class="fa fa-check"></i></button>
+              <button type="button" class="btn btn-light btn-sm" title="Cancelar" (click)="cancelEdit()"><i class="fa fa-times"></i></button>
+            } @else {
+              <button type="button" class="btn btn-outline-secondary btn-sm" title="Editar dados do curso" (click)="startEdit(i)"><i class="fa fa-pen"></i></button>
+              <button type="button" class="btn btn-outline-danger btn-sm" title="Remover" (click)="remove(i)"><i class="fa fa-trash"></i></button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4" class="text-center">Nenhum padrinho/madrinha adicionado</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<button type="button" class="btn btn-primary" (click)="openAddModal()">
+  <i class="fa fa-plus"></i>&nbsp;Cadastrar/selecionar padrinho
+</button>
+
+<app-modal #addModal [size]="'lg'">
+  <modal-header>
+    <h4>Adicionar padrinho/madrinha</h4>
+  </modal-header>
+  <modal-body>
+    <div class="btn-group m-b-10" role="group">
+      <button type="button" class="btn" [class.btn-primary]="mode === 'customer'" [class.btn-outline-primary]="mode !== 'customer'" (click)="setMode('customer')">Paroquiano cadastrado</button>
+      <button type="button" class="btn" [class.btn-primary]="mode === 'external'" [class.btn-outline-primary]="mode !== 'external'" (click)="setMode('external')">Pessoa sem cadastro</button>
+    </div>
+
+    @if (mode === 'customer') {
+      <div class="form-group m-b-10">
+        <label>Paroquiano (qualquer paróquia)</label>
+        <app-customer-any-company-selector
+          #godparentSelector
+          (selected)="onGodparentSelected($event)"
+        ></app-customer-any-company-selector>
+      </div>
+    } @else {
+      <div class="row">
+        <div class="col-md-8 form-group m-b-10">
+          <label>Nome completo <span class="text-danger">*</span></label>
+          <input class="form-control" [(ngModel)]="external_name" />
+        </div>
+        <div class="col-md-4 form-group m-b-10">
+          <label>Paróquia de origem</label>
+          <input class="form-control" [(ngModel)]="external_origin_parish" />
+        </div>
+      </div>
+    }
+
+    <hr />
+    <label class="f-w-600">Dados do curso de padrinhos (opcional)</label>
+    <div class="row m-b-10">
+      <div class="col-md-4 form-group">
+        <label>Data do curso</label>
+        <input type="date" class="form-control" [(ngModel)]="course_date" />
+      </div>
+      <div class="col-md-3 form-group">
+        <label>Horas</label>
+        <input type="number" min="0" class="form-control" [(ngModel)]="course_hours" />
+      </div>
+      <div class="col-md-5 form-group">
+        <label>Local do curso</label>
+        <input class="form-control" [(ngModel)]="course_place" [ngbTypeahead]="searchCoursePlace" />
+      </div>
+    </div>
+  </modal-body>
+  <modal-footer>
+    <div class="d-flex justify-content-end">
+      <button type="button" class="btn btn-light me-2" (click)="addModal.hide()">Cancelar</button>
+      @if (mode === 'customer') {
+        <button type="button" class="btn btn-primary" [disabled]="!canConfirmCustomer" (click)="confirmCustomer()">Confirmar seleção</button>
+      } @else {
+        <button type="button" class="btn btn-primary" [disabled]="!canAddExternal" (click)="addExternal()">Adicionar à lista</button>
+      }
+    </div>
+  </modal-footer>
+</app-modal>
