@@ -330,19 +330,33 @@ export class FormComponent implements OnChanges, OnInit {
   }
 
   /** Client-orchestrated, mesmo espírito de syncAddresses em Paroquianos: sem
-   * endpoint dedicado, cada vínculo atual/removido vira um PUT separado em
-   * Employee/Customer (`user_id`). Não é atômico — ver AI_CONTEXT §7. */
+   * endpoint dedicado, cada vínculo novo/removido vira um PUT separado em
+   * Employee/Customer (`user_id`). Não é atômico — ver AI_CONTEXT §7.
+   *
+   * Só manda request pra quem realmente mudou (novo ou removido) — vínculo
+   * que já existia e continua igual não é reenviado. Reenviar um vínculo
+   * inalterado chamava EmployeeService.update({user_id}) de novo, e o
+   * backend sempre reatribui a role "Colaborador" quando recebe user_id
+   * (EmployeeService.update, back) — isso readicionava a role logo depois
+   * dela ter sido removida explicitamente na aba Perfis, no mesmo submit. */
   private syncRepresentations(
     userId: string,
     representations: UserRepresentationRow[],
   ): Observable<any> {
+    const originalKeys = this.originalRepresentations.map(
+      (row) => `${row.type}:${row.entity_id}`,
+    );
     const currentKeys = representations.map((row) => `${row.type}:${row.entity_id}`);
+
+    const added = representations.filter(
+      (row) => !originalKeys.includes(`${row.type}:${row.entity_id}`),
+    );
     const removed = this.originalRepresentations.filter(
       (row) => !currentKeys.includes(`${row.type}:${row.entity_id}`),
     );
 
     const requests: Observable<any>[] = [
-      ...representations.map((row) =>
+      ...added.map((row) =>
         row.type === 'employee'
           ? this.employeeService.update(row.entity_id, { user_id: userId } as any)
           : this.customerService.update(row.entity_id, { user_id: userId } as any),
